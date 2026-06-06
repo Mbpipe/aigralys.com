@@ -54,7 +54,10 @@
 - Build: `npm run build` → genera `dist/`.
 - Deploy: Cloudflare Pages (build command `npm run build`, output dir `dist`). Pendiente de configurar.
 
+## Decisiones del dueño (confirmadas 2026-06-06 ~11:05)
+- **Mail de contacto:** `hello@aigralys.com` (el dueño lo escribió explícito; NOTA: difiere del PRD que decía `hola@`/`gonzalo@`. Confirmar si fue intencional o typo de "hola"). Aplicado en `Hero.astro` y en la meta description del `BaseLayout`.
+- **Flechas tagline:** `→` unicode (confirmado). Se queda como está.
+
 ## Preguntas abiertas / bloqueos
-- ¿Mail de contacto canónico: `hola@aigralys.com` (PRD secciones) o `gonzalo@aigralys.com` (footer)? El PRD lista ambos en el footer. Por defecto uso `hola@aigralys.com` como principal.
-- **Flechas tagline:** ¿`→` (unicode, como ahora) o `->` (ASCII, como el SVG final)? Decisión del dueño.
+- **Mail:** confirmar que `hello@aigralys.com` es correcto y no un typo de `hola@aigralys.com`. (El dueño lo tipeó como respuesta libre.)
 - OG image: el PRD pide "una OG image simple navy+wordmark". Se generará en pasos posteriores (probablemente SVG→PNG o un PNG estático).

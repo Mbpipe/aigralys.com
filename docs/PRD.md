@@ -53,7 +53,7 @@ Archivo de referencia: `aigralys-mono-final.svg`.
    - Wordmark `aigralys` + cursor dorado.
    - Tagline `// build → ship → repeat.`
    - Una línea de qué es: *"Un sello de productos digitales propios."* (o variante).
-   - CTA suave doble: `ver productos` (ancla a la sección) + `escribir` (mailto a hola@aigralys.com).
+   - CTA suave doble: `ver productos` (ancla a la sección) + `escribir` (mailto a hello@aigralys.com).
 
 2. **Qué es Aigralys** (2-4 líneas, no más)
    - El relato del sello: lanza productos propios a cadencia, en público. Honesto, sin autodestrucción. Tomar como base la idea "operado como un sello discográfico: varios lanzamientos al año, cada uno su propia cara".
@@ -72,7 +72,7 @@ Archivo de referencia: `aigralys-mono-final.svg`.
    - **Sin** lenguaje de consultoría. Solo "construimos el producto".
 
 6. **Footer**
-   - Stamp/wordmark chico, mail (hola@aigralys.com / gonzalo@aigralys.com), año, link a productos. Minimal.
+   - Stamp/wordmark chico, mail (hello@aigralys.com), año, link a productos. Minimal.
 
 ## 6. Requerimientos técnicos
 
