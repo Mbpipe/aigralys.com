@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="6" fill="#101D30"/>
+  <text x="50%" y="50%" dy="0.02em"
+        text-anchor="middle" dominant-baseline="central"
+        font-family="'JetBrains Mono','IBM Plex Mono',ui-monospace,monospace"
+        font-size="22" font-weight="700" fill="#E2AC55">a</text>
+</svg>
