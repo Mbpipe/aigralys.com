@@ -1,7 +1,7 @@
 # CONTEXT — Handoff landing aigralys.com
 
-- **Última actualización:** 2026-06-06 11:18 (UTC-3)
-- **Estado actual:** **Página completa en ambos idiomas (EN default `/`, ES `/es`)**. Hero aprobado por el dueño. Todas las secciones del PRD §5 construidas. **PARADO antes del deploy** (pedido explícito): falta el OK de la página completa + configurar Cloudflare Pages.
+- **Última actualización:** 2026-06-06 11:30 (UTC-3)
+- **Estado actual:** **Página completa en ambos idiomas (EN default `/`, ES `/es`)**, Lighthouse 100 en las 4 categorías (mobile + desktop), commits pusheados a `origin/main`. **PARADO antes del deploy a Cloudflare Pages** (espera OK del dueño).
 
 ## Hecho
 - Leído `docs/PRD.md` (versión bilingüe actualizada). Copy EN/ES tomado del PRD.
@@ -23,11 +23,17 @@
 ## En progreso
 - Nada a medias. Esperando el OK de la página completa para pasar al deploy.
 
+## Lighthouse (build de producción vía `astro preview`, 2026-06-06 11:30)
+Corrido con Chrome del sistema sobre `http://localhost:4399`:
+- **EN mobile (`/`):** performance 100 · accessibility 100 · best-practices 100 · seo 100
+- **EN desktop (`/`):** 100 · 100 · 100 · 100
+- **ES mobile (`/es/`):** 100 · 100 · 100 · 100
+Supera holgado el objetivo del PRD (95+). Reportes JSON en `/tmp/aigralys-shots/lh/` (no commiteados).
+
 ## Próximos pasos (en orden)
-1. **Esperar aprobación de la página completa.**
+1. **Push a origin/main** ← en curso.
 2. (Opcional, fuera del core) Autodetect de idioma del navegador → `/es` (el PRD lo marca como opcional).
-3. Lighthouse 95+ (perf + a11y) — chequeo final.
-4. Deploy a Cloudflare Pages: build `npm run build`, output `dist`. Conectar repo GitHub, dominio + SSL + redirect www→raíz. **No hacer hasta tener el OK.**
+3. Deploy a Cloudflare Pages: build `npm run build`, output `dist`. Conectar repo GitHub, dominio + SSL + redirect www→raíz. **No hacer hasta tener el OK del dueño.**
 
 ## Notas de herramientas (limpieza ya hecha)
 - Para las capturas se usó `puppeteer-core` + un script `_shoot.mjs`. **Ambos ya removidos** del repo para no ensuciar deps. Si hace falta re-capturar: `npm i -D puppeteer-core`, levantar `npm run preview -- --port 4399`, y un script que apunte al Chrome del sistema con `fullPage:true`.
