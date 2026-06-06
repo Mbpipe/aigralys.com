@@ -1,0 +1,56 @@
+---
+import { languages, localeHref, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const entries = Object.entries(languages) as [Lang, string][];
+---
+
+<nav class="lang" aria-label="Language">
+  {
+    entries.map(([code, label], i) => (
+      <>
+        {i > 0 && <span class="lang__sep" aria-hidden="true">/</span>}
+        <a
+          class="lang__link"
+          href={localeHref[code]}
+          hreflang={code}
+          aria-current={code === lang ? "true" : undefined}
+        >
+          {label}
+        </a>
+      </>
+    ))
+  }
+</nav>
+
+<style>
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .lang__link {
+    color: var(--slate);
+    padding: 0.15rem 0.1rem;
+    transition: color 0.15s ease;
+  }
+
+  .lang__link:hover {
+    color: var(--ink);
+  }
+
+  .lang__link[aria-current="true"] {
+    color: var(--gold);
+  }
+
+  .lang__sep {
+    color: var(--border);
+  }
+</style>

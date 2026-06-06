@@ -1,28 +1,50 @@
 ---
 import "../styles/global.css";
+import LangSwitcher from "../components/LangSwitcher.astro";
+import { strings, localeTag, type Lang } from "../i18n/strings";
 
 interface Props {
-  title?: string;
-  description?: string;
+  lang: Lang;
 }
 
-const {
-  title = "aigralys — sello de productos digitales propios",
-  description = "Aigralys es un sello que lanza productos digitales propios. build → ship → repeat.",
-} = Astro.props;
+const { lang } = Astro.props;
+const t = strings[lang];
+
+const site = "https://aigralys.com";
+const canonical = lang === "en" ? `${site}/` : `${site}/es/`;
+const ogImage = `${site}/og.png`;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={localeTag[lang]}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
 
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- hreflang: EN / ES / x-default -->
+    <link rel="alternate" hreflang="en" href={`${site}/`} />
+    <link rel="alternate" hreflang="es" href={`${site}/es/`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}/`} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="aigralys" />
+    <meta property="og:locale" content={lang === "en" ? "en_US" : "es_AR"} />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={t.meta.title} />
+    <meta name="twitter:description" content={t.meta.description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Fuentes: JetBrains Mono (wordmark/acentos) + Inter (cuerpo) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,6 +55,63 @@ const {
     />
   </head>
   <body>
-    <slot />
+    <a class="skip-link" href="#main">{t.skipToContent}</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="site-header__mark mono" href={lang === "en" ? "/" : "/es/"}
+          >aigralys</a
+        >
+        <LangSwitcher lang={lang} />
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
   </body>
 </html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 10;
+    background: var(--gold);
+    color: var(--navy);
+    padding: 0.5rem 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    border-radius: 0 0 4px 0;
+  }
+  .skip-link:focus {
+    left: 0;
+  }
+
+  .site-header {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 5;
+    padding-block: clamp(1rem, 3vh, 1.6rem);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-header__mark {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--slate);
+    transition: color 0.15s ease;
+  }
+  .site-header__mark:hover {
+    color: var(--ink);
+  }
+</style>

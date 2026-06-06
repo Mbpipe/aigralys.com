@@ -1,0 +1,31 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="about" aria-labelledby="about-title">
+  <div class="container about">
+    <h2 class="section__title" id="about-title">{t.about.heading}</h2>
+    <p class="about__body">{t.about.body}</p>
+  </div>
+</section>
+
+<style>
+  .about {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .about__body {
+    font-size: clamp(1.1rem, 3vw, 1.45rem);
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 46ch;
+  }
+</style>

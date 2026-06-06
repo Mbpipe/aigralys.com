@@ -1,0 +1,57 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="how" aria-labelledby="how-title">
+  <div class="container">
+    <h2 class="section__title" id="how-title">{t.how.heading}</h2>
+
+    <ul class="principles" role="list">
+      {
+        t.how.principles.map((p, i) => (
+          <li class="principle">
+            <span class="principle__num mono" aria-hidden="true">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span class="principle__text mono">{p}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .principles {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .principle {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+  }
+
+  .principle__num {
+    color: var(--gold);
+    font-size: 0.95rem;
+    font-weight: 500;
+    flex: none;
+  }
+
+  .principle__text {
+    font-size: clamp(1.05rem, 3vw, 1.3rem);
+    color: var(--ink);
+  }
+</style>

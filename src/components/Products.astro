@@ -1,0 +1,132 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="products" aria-labelledby="products-title">
+  <div class="container">
+    <h2 class="section__title" id="products-title">{t.products.heading}</h2>
+
+    <ul class="grid" role="list">
+      {
+        t.products.items.map((p) => {
+          const isLive = p.status === "live";
+          const statusLabel = isLive ? t.products.live : t.products.wip;
+          const Tag = isLive && p.href ? "a" : "div";
+          return (
+            <li>
+              <Tag
+                class:list={["card", { "card--link": isLive && p.href }]}
+                {...isLive && p.href
+                  ? {
+                      href: p.href,
+                      target: "_blank",
+                      rel: "noopener",
+                    }
+                  : {}}
+              >
+                <div class="card__top">
+                  <span class="card__name mono">{p.name}</span>
+                  <span
+                    class:list={[
+                      "badge mono",
+                      isLive ? "badge--live" : "badge--wip",
+                    ]}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+                <p class="card__line">{p.line}</p>
+                {isLive && p.href && (
+                  <span class="card__link mono" aria-hidden="true">
+                    {p.hrefLabel} →
+                  </span>
+                )}
+              </Tag>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.75rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    height: 100%;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+  }
+
+  .card--link {
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .card--link:hover {
+    border-color: var(--gold);
+  }
+  .card--link:hover .card__link {
+    color: var(--gold);
+  }
+
+  .card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .card__name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    text-transform: lowercase;
+  }
+  .badge--live {
+    color: var(--gold);
+  }
+  .badge--wip {
+    color: var(--slate);
+  }
+
+  .card__line {
+    color: var(--slate);
+    font-size: 0.98rem;
+    line-height: 1.45;
+    flex: 1;
+  }
+
+  .card__link {
+    font-size: 0.85rem;
+    color: var(--slate);
+    transition: color 0.15s ease;
+  }
+</style>

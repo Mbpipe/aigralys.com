@@ -1,0 +1,89 @@
+---
+import { strings, MAIL, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <span class="footer__mark mono"
+        >aigralys<span class="footer__cursor" aria-hidden="true"></span></span
+      >
+      <p class="footer__tagline mono muted">{t.footer.tagline}</p>
+    </div>
+
+    <nav class="footer__links mono" aria-label={t.footer.products}>
+      <a href="#products">{t.footer.products}</a>
+      <a href={`mailto:${MAIL}`}>{MAIL}</a>
+      <a href="#main">{t.footer.backToTop}</a>
+    </nav>
+
+    <p class="footer__legal mono muted">
+      © {year} aigralys · {t.footer.rights}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-block: clamp(2.5rem, 6vh, 3.5rem);
+  }
+
+  .footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .footer__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .footer__mark {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer__cursor {
+    display: inline-block;
+    width: 0.45em;
+    height: 0.85em;
+    margin-left: 0.12em;
+    translate: 0 0.05em;
+    background: var(--gold);
+  }
+
+  .footer__tagline {
+    font-size: 0.85rem;
+  }
+
+  .footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    font-size: 0.88rem;
+  }
+  .footer__links a {
+    color: var(--slate);
+    transition: color 0.15s ease;
+  }
+  .footer__links a:hover {
+    color: var(--gold);
+  }
+
+  .footer__legal {
+    font-size: 0.78rem;
+  }
+</style>

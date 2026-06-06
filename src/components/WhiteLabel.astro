@@ -1,0 +1,52 @@
+---
+import { strings, MAIL, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="work" aria-labelledby="work-title">
+  <div class="container work">
+    <h2 class="section__title" id="work-title">{t.work.heading}</h2>
+    <p class="work__body">{t.work.body}</p>
+    <a class="work__cta mono" href={`mailto:${MAIL}`}>
+      {t.work.cta} <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .work {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .work__body {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 46ch;
+  }
+
+  .work__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    color: var(--navy);
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 0.6rem 1.1rem;
+    border-radius: 4px;
+    margin-top: 0.4rem;
+    transition: background-color 0.15s ease;
+  }
+  .work__cta:hover {
+    background: #eab863;
+  }
+</style>

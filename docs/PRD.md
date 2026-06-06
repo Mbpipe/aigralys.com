@@ -83,10 +83,11 @@ Archivo de referencia: `aigralys-mono-final.svg`.
 - **SEO/meta:** `<title>`, meta description, Open Graph (title, description, image), favicon = la `a` dorada sobre navy. Una OG image simple navy+wordmark.
 - **Sin backend.** Contacto = `mailto:`. (Si más adelante se quiere captura de email, se enchufa Kit como en comolocobro — fuera de alcance de v1.)
 - **Deploy:** Cloudflare Pages, mismo patrón que comolocobro (repo propio en GitHub, dominio + SSL + redirect www→raíz).
+- **i18n (bilingüe):** Astro i18n. **EN por defecto en `/`**, ES en `/es`. Switcher de idioma visible (header o footer). Tags `hreflang` EN/ES + `x-default`. Opcional: autodetect por idioma del navegador que mande a `/es` si el browser está en español.
 
 ## 7. Fuera de alcance (v1)
 
-Blog/CMS, login, dashboards, analytics propios, formularios con backend, multi-idioma, light mode, cualquier copy que implique consultoría/advisory.
+Blog/CMS, login, dashboards, analytics propios, formularios con backend, light mode, cualquier copy que implique consultoría/advisory.
 
 ## 8. Criterios de aceptación
 
@@ -106,3 +107,12 @@ Blog/CMS, login, dashboards, analytics propios, formularios con backend, multi-i
 - Qué es: "Aigralys es un estudio que lanza productos digitales propios, a su ritmo y en público. Pocos por año, cada uno con su propia cara."
 - comolocobro card: "Cómo cobrar desde afuera en Argentina, sin vueltas." — estado `live`.
 - White-label: "¿Necesitás un MVP construido? A veces tomamos un proyecto por trimestre. Escribinos."
+
+### Copy EN (default, raíz `/`)
+
+- Hero: `aigralys` · `// build → ship → repeat.` · "A studio shipping its own digital products."
+- CTAs: `see products` / `get in touch`.
+- What is Aigralys: "Aigralys is a studio that ships its own digital products, at its own pace and in public. A few a year, each with its own face."
+- comolocobro card: "Getting paid from abroad in Argentina, without the runaround." — `live`.
+- Work with Aigralys: "Need an MVP built? We take on one project a quarter. Get in touch."
+- Headings EN / ES: "What is Aigralys" / "Qué es Aigralys" · "Products" / "Productos" · "How we work" / "Cómo trabajamos" · "Work with Aigralys" / "Trabajar con Aigralys".

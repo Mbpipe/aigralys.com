@@ -105,3 +105,31 @@ svg {
   font-family: var(--mono);
   color: var(--slate);
 }
+
+/* ---------- secciones ---------- */
+.section {
+  padding-block: clamp(3.5rem, 9vh, 6rem);
+  border-top: 1px solid var(--border);
+}
+
+.section__label {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--slate);
+  margin-bottom: 0.9rem;
+}
+
+.section__label::before {
+  content: "// ";
+  color: var(--gold);
+}
+
+.section__title {
+  font-family: var(--mono);
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.15;
+}
