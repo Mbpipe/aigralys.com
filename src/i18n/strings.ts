@@ -2,6 +2,7 @@
 // Fuente: docs/PRD.md (§5 + sección "Copy EN").
 
 export const MAIL = "hello@aigralys.com";
+export const X_URL = "https://x.com/Aigralys";
 
 export const languages = {
   en: "EN",
@@ -32,7 +33,7 @@ type Strings = {
   products: { heading: string; live: string; wip: string; items: Product[] };
   how: { heading: string; principles: string[] };
   work: { heading: string; body: string; cta: string };
-  footer: { tagline: string; products: string; rights: string; backToTop: string };
+  footer: { tagline: string; products: string; rights: string; backToTop: string; followX: string };
 };
 
 export const strings: Record<Lang, Strings> = {
@@ -83,6 +84,7 @@ export const strings: Record<Lang, Strings> = {
       products: "products",
       rights: "a studio shipping its own digital products.",
       backToTop: "back to top",
+      followX: "Aigralys on X",
     },
   },
 
@@ -133,6 +135,7 @@ export const strings: Record<Lang, Strings> = {
       products: "productos",
       rights: "un sello de productos digitales propios.",
       backToTop: "volver arriba",
+      followX: "Aigralys en X",
     },
   },
 };
