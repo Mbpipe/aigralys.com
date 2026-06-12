@@ -22,6 +22,7 @@ type Product = {
   status: "live" | "wip";
   href?: string;
   hrefLabel?: string;
+  shot?: string;
 };
 
 type Strings = {
@@ -65,8 +66,16 @@ export const strings: Record<Lang, Strings> = {
           status: "live",
           href: "https://comolocobro.com",
           hrefLabel: "comolocobro.com",
+          shot: "/shots/comolocobro.png",
         },
-        { name: "Product #2", line: "In exploration.", status: "wip" },
+        {
+          name: "clearlit",
+          line: "What will your AI-built app cost when it grows? Find the traps before the invoice does.",
+          status: "live",
+          href: "https://clearlit.app",
+          hrefLabel: "clearlit.app",
+          shot: "/shots/clearlit.png",
+        },
         { name: "Product #3", line: "In exploration.", status: "wip" },
       ],
     },
@@ -116,8 +125,16 @@ export const strings: Record<Lang, Strings> = {
           status: "live",
           href: "https://comolocobro.com",
           hrefLabel: "comolocobro.com",
+          shot: "/shots/comolocobro.png",
         },
-        { name: "Producto #2", line: "En exploración.", status: "wip" },
+        {
+          name: "clearlit",
+          line: "¿Cuánto va a costar tu app hecha con IA cuando crezca? Encontrá las trampas antes que la factura.",
+          status: "live",
+          href: "https://clearlit.app",
+          hrefLabel: "clearlit.app",
+          shot: "/shots/clearlit.png",
+        },
         { name: "Producto #3", line: "En exploración.", status: "wip" },
       ],
     },
