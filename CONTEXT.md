@@ -1,6 +1,17 @@
 # CONTEXT — aigralys.com
 
-## v2 (2026-10-23, tarde) — estado vigente
+## v3 (2026-10-23, noche) — estado vigente
+- Cada caso tiene una escena animada propia, armada con código (no capturas): `src/components/scenes/`.
+  - Barra común de agente (`SceneBar`): nombre del agente, tarea en curso por paso del scroll y reloj.
+  - Bancor (`render-agent`): render por tiles en "clay" que se completa con el scroll + panel de Cycles; después día → atardecer → noche.
+  - clearlit (`cost-agent`): árbol de archivos escaneado, curva de costo hoy vs. con arreglos, 3 hallazgos y el arreglo tipeándose.
+  - comolocobro (`payout-agent`): USD 2.000 fluyendo por 4 rutas de cobro, netos que cuentan, dólar en vivo, gana la mejor ruta.
+  - Bitewave (`bitewave-pipeline`): loop de 14 s con señal en vivo, foto del río con anillos y notas en la punta, clasificador tinyML y partitura (pez / vos / banda).
+- Fuentes autoalojadas con @fontsource (sin Google Fonts).
+- OG image nueva con el claim actual, apple-touch-icon, JSON-LD de Organization.
+- Contacto con panel y fondo de puntos; números de "Cómo trabajamos" en contorno.
+
+## v2 (2026-10-23, tarde)
 - Sin menú de servicios: sección abierta "La IA puede…" con frases que se tipean solas + marquee de capacidades. Mensaje: no hay catálogo, se arranca por el problema del cliente.
 - Hero con campo de partículas animado en canvas (reacciona al mouse, emite pulsos). Título enorme que entra palabra por palabra.
 - Casos como 4 capítulos con el mismo peso (Bancor Arena, clearlit, comolocobro, Bitewave): pantalla fija, texto problema / IA / resultado que avanza con el scroll, pantalla que entra girando y un "registro" del agente que se completa paso a paso.

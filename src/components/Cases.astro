@@ -1,6 +1,10 @@
 ---
 import { strings, type Lang } from "../i18n/strings";
 import Words from "./Words.astro";
+import SceneBancor from "./scenes/SceneBancor.astro";
+import SceneClearlit from "./scenes/SceneClearlit.astro";
+import SceneComolocobro from "./scenes/SceneComolocobro.astro";
+import SceneBitewave from "./scenes/SceneBitewave.astro";
 
 interface Props {
   lang: Lang;
@@ -10,15 +14,6 @@ const t = strings[lang];
 const total = String(t.cases.items.length).padStart(2, "0");
 const L = t.cases.labels;
 
-// Posiciones de las trampas de costo sobre la captura de clearlit (en % del cuadro).
-const traps = [
-  { x: 54, y: 47 },
-  { x: 54, y: 64 },
-  { x: 54, y: 75 },
-];
-// Rutas de cobro (anchos relativos del neto), la ganadora resaltada.
-const routes = [{ w: 72 }, { w: 88 }, { w: 97, best: true }, { w: 81 }];
-const routeLabel = lang === "es" ? "método" : "method";
 ---
 
 <section class="cases-sec" id="casos" aria-labelledby="casos-title">
@@ -77,54 +72,10 @@ const routeLabel = lang === "es" ? "método" : "method";
 
             <div class="chapter__visual">
               <div class={`screen screen--${c.id}`}>
-                {c.id === "bancor" &&
-                  ["dia", "atardecer", "noche"].map((v) => (
-                    <img class="screen__img" data-view={v} src={`/work/bancor-${v}.webp`} alt="" width="1800" height="1013" loading="lazy" decoding="async" />
-                  ))}
-
-                {c.id === "clearlit" && (
-                  <>
-                    <img class="screen__img screen__img--top" src="/work/clearlit.webp" alt="" width="1600" height="900" loading="lazy" decoding="async" />
-                    <span class="scan" aria-hidden="true" />
-                    {traps.map((p, k) => (
-                      <span class="trap" style={`left:${p.x}%;top:${p.y}%;--k:${k}`} aria-hidden="true" />
-                    ))}
-                    <div class="saving mono" aria-hidden="true">
-                      <span class="saving__from">USD 800</span>
-                      <span class="saving__arrow">→</span>
-                      <span class="saving__to">USD 75</span>
-                      <span class="saving__unit">/ {lang === "es" ? "mes" : "mo"}</span>
-                    </div>
-                  </>
-                )}
-
-                {c.id === "comolocobro" && (
-                  <>
-                    <img class="screen__img screen__img--top screen__img--dim" src="/work/comolocobro.webp" alt="" width="1600" height="900" loading="lazy" decoding="async" />
-                    <div class="routes mono" aria-hidden="true">
-                      {routes.map((r, k) => (
-                        <div class:list={["route", { "route--best": r.best }]} style={`--w:${r.w}%;--k:${k}`}>
-                          <span class="route__label">{routeLabel} {String.fromCharCode(65 + k)}</span>
-                          <span class="route__bar"><span /></span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {c.id === "bitewave" && (
-                  <video class="screen__img" src="/work/bitewave-hud.mp4" poster="/work/bitewave-hud.webp" muted loop playsinline preload="none" data-video />
-                )}
-
-                <div class="hud mono" aria-hidden="true">
-                  <p class="hud__title"><span class="hud__dot" />{t.cases.hudTitle} / {c.id}</p>
-                  {c.hud.map((line, s) => (
-                    <p class="hud__line" data-h={s}>
-                      <span class="hud__mark" />
-                      {line}
-                    </p>
-                  ))}
-                </div>
+                {c.id === "bancor" && <SceneBancor tasks={c.hud} lang={lang} />}
+                {c.id === "clearlit" && <SceneClearlit tasks={c.hud} lang={lang} />}
+                {c.id === "comolocobro" && <SceneComolocobro tasks={c.hud} lang={lang} />}
+                {c.id === "bitewave" && <SceneBitewave tasks={c.hud} lang={lang} />}
               </div>
             </div>
           </div>
@@ -138,18 +89,8 @@ const routeLabel = lang === "es" ? "método" : "method";
   const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   const chapters = document.querySelectorAll<HTMLElement>("[data-chapter]");
 
-  // Videos: se reproducen solo cuando se ven.
-  const vio = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      const v = e.target as HTMLVideoElement;
-      if (e.isIntersecting && motion) v.play().catch(() => {});
-      else v.pause();
-    }
-  });
-  document.querySelectorAll<HTMLVideoElement>("[data-video]").forEach((v) => {
-    v.preload = "auto";
-    vio.observe(v);
-  });
+  // Sin movimiento: cada escena se muestra en su estado final.
+  if (!motion) chapters.forEach((ch) => (ch.dataset.step = "2"));
 
   if (motion && chapters.length) {
     document.documentElement.classList.add("has-chapters");
@@ -170,8 +111,8 @@ const routeLabel = lang === "es" ? "método" : "method";
         ch.dataset.step = String(p < 0.34 ? 0 : p < 0.67 ? 1 : 2);
         if (ch.dataset.chapter === "bancor") {
           const imgs = ch.querySelectorAll<HTMLImageElement>("[data-view]");
-          imgs[1].style.opacity = String(smooth(0.25, 0.45, p));
-          imgs[2].style.opacity = String(smooth(0.58, 0.78, p));
+          imgs[1].style.opacity = String(smooth(0.44, 0.6, p));
+          imgs[2].style.opacity = String(smooth(0.68, 0.84, p));
         }
       }
     };
@@ -302,6 +243,7 @@ const routeLabel = lang === "es" ? "método" : "method";
   /* ---------- pantalla ---------- */
   .screen {
     position: relative;
+    container-type: inline-size;
     aspect-ratio: 16 / 9;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -309,144 +251,9 @@ const routeLabel = lang === "es" ? "método" : "method";
     background: var(--void);
     box-shadow: 0 40px 120px -40px rgba(226, 172, 85, 0.25);
   }
-  .screen__img {
+  .screen :global(.scene) {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .screen__img--top {
-    object-position: top;
-  }
-  .screen__img--dim {
-    filter: brightness(0.55) saturate(0.8);
-  }
-  .screen--bancor .screen__img[data-view="dia"],
-  .screen--bancor .screen__img[data-view="atardecer"] {
-    opacity: 0;
-  }
-
-  .hud {
-    position: absolute;
-    left: 0.9rem;
-    bottom: 0.9rem;
-    max-width: min(88%, 22rem);
-    padding: 0.7rem 0.85rem;
-    background: rgba(6, 12, 23, 0.82);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.72rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-  .hud__title {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    color: var(--slate);
-    margin-bottom: 0.15rem;
-  }
-  .hud__dot {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 50%;
-    background: var(--gold);
-    box-shadow: 0 0 8px rgba(226, 172, 85, 0.9);
-  }
-  .hud__line {
-    display: flex;
-    gap: 0.5rem;
-    color: var(--ink);
-  }
-  .hud__mark {
-    flex: none;
-    width: 0.55rem;
-    height: 0.55rem;
-    margin-top: 0.3em;
-    border: 1px solid var(--gold);
-    background: var(--gold);
-  }
-
-  /* clearlit */
-  .scan,
-  .trap {
-    display: none;
-  }
-  .saving {
-    position: absolute;
-    right: 0.9rem;
-    top: 0.9rem;
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.55rem 0.8rem;
-    background: rgba(6, 12, 23, 0.86);
-    border: 1px solid rgba(226, 172, 85, 0.5);
-    border-radius: 6px;
-    font-size: clamp(0.85rem, 1.6vw, 1.15rem);
-    color: var(--ink);
-  }
-  .saving__from {
-    color: var(--slate);
-    text-decoration: line-through;
-  }
-  .saving__arrow,
-  .saving__to {
-    color: var(--gold);
-    font-weight: 700;
-  }
-  .saving__unit {
-    color: var(--slate);
-    font-size: 0.8em;
-  }
-
-  /* comolocobro */
-  .routes {
-    position: absolute;
-    right: 0.9rem;
-    top: 0.9rem;
-    width: min(62%, 22rem);
-    padding: 0.8rem 0.9rem;
-    background: rgba(6, 12, 23, 0.86);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-    font-size: 0.72rem;
-  }
-  .route {
-    display: grid;
-    grid-template-columns: 5.5rem 1fr;
-    align-items: center;
-    gap: 0.6rem;
-    color: var(--slate);
-    transition:
-      color 0.4s ease,
-      opacity 0.4s ease;
-  }
-  .route__bar {
-    height: 0.55rem;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .route__bar span {
-    display: block;
-    height: 100%;
-    width: var(--w);
-    background: var(--slate);
-  }
-  .route--best {
-    color: var(--gold);
-  }
-  .route--best .route__bar span {
-    background: var(--gold);
-    box-shadow: 0 0 12px rgba(226, 172, 85, 0.8);
   }
 
   /* =========== capítulos con scroll (JS + movimiento) =========== */
@@ -475,9 +282,6 @@ const routeLabel = lang === "es" ? "método" : "method";
     :global(.has-chapters) .chapter__visual {
       margin-right: calc(-1 * max(0px, (100vw - var(--maxw)) / 2 - 1.5rem));
     }
-  }
-  :global(.has-chapters) .screen--bancor .screen__img[data-view="dia"] {
-    opacity: 1;
   }
   .chapter__bignum {
     display: none;
@@ -550,119 +354,6 @@ const routeLabel = lang === "es" ? "método" : "method";
     transform-origin: 30% 50%;
     will-change: transform;
   }
-  :global(.has-chapters) .screen__img[data-view] {
-    transform: scale(calc(1.14 - var(--p, 0) * 0.14));
-  }
-
-  /* HUD: las líneas se encienden por paso. */
-  :global(.has-chapters) .hud__line {
-    color: var(--slate);
-    transition: color 0.3s ease;
-  }
-  :global(.has-chapters) .hud__mark {
-    background: transparent;
-    transition:
-      background-color 0.3s ease,
-      box-shadow 0.3s ease;
-  }
-  :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"],
-  :global(.has-chapters) .chapter[data-step="1"] .hud__line:is([data-h="0"], [data-h="1"]),
-  :global(.has-chapters) .chapter[data-step="2"] .hud__line {
-    color: var(--ink);
-  }
-  :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"] .hud__mark,
-  :global(.has-chapters) .chapter[data-step="1"] .hud__line:is([data-h="0"], [data-h="1"]) .hud__mark,
-  :global(.has-chapters) .chapter[data-step="2"] .hud__line .hud__mark {
-    background: var(--gold);
-    box-shadow: 0 0 8px rgba(226, 172, 85, 0.8);
-  }
-
-  /* clearlit: escaneo, trampas y ahorro */
-  :global(.has-chapters) .scan {
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    top: calc(min(var(--p, 0) * 1.6, 1) * 100%);
-    background: var(--gold);
-    box-shadow: 0 0 18px 4px rgba(226, 172, 85, 0.55);
-    transition: opacity 0.4s ease;
-  }
-  :global(.has-chapters) .chapter[data-step="2"] .scan {
-    opacity: 0;
-  }
-  :global(.has-chapters) .trap {
-    display: block;
-    position: absolute;
-    width: 1.1rem;
-    height: 1.1rem;
-    margin: -0.55rem 0 0 -0.55rem;
-    border-radius: 50%;
-    background: #E5574A;
-    transform: scale(0);
-    transition: transform 0.45s var(--ease-out);
-    transition-delay: calc(var(--k) * 0.18s);
-  }
-  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .trap {
-    transform: scale(1);
-    animation: ping 1.6s ease-out infinite;
-  }
-  @keyframes ping {
-    from {
-      box-shadow: 0 0 0 0 rgba(229, 87, 74, 0.6);
-    }
-    to {
-      box-shadow: 0 0 0 18px rgba(229, 87, 74, 0);
-    }
-  }
-  :global(.has-chapters) .saving {
-    opacity: 0;
-    transform: translateY(-10px);
-    transition:
-      opacity 0.5s var(--ease-out),
-      transform 0.5s var(--ease-out);
-  }
-  :global(.has-chapters) .chapter[data-step="2"] .saving {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* comolocobro: las barras crecen y gana una ruta */
-  :global(.has-chapters) .routes {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .routes {
-    opacity: 1;
-  }
-  :global(.has-chapters) .route__bar span {
-    width: 0;
-    transition:
-      width 0.9s var(--ease-out),
-      background-color 0.4s ease;
-    transition-delay: calc(var(--k) * 0.12s);
-  }
-  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .route__bar span {
-    width: var(--w);
-  }
-  :global(.has-chapters) .route--best {
-    color: var(--slate);
-  }
-  :global(.has-chapters) .route--best .route__bar span {
-    background: var(--slate);
-    box-shadow: none;
-  }
-  :global(.has-chapters) .chapter[data-step="2"] .route--best {
-    color: var(--gold);
-  }
-  :global(.has-chapters) .chapter[data-step="2"] .route--best .route__bar span {
-    background: var(--gold);
-    box-shadow: 0 0 12px rgba(226, 172, 85, 0.8);
-  }
-  :global(.has-chapters) .chapter[data-step="2"] .route:not(.route--best) {
-    opacity: 0.45;
-  }
 
   /* Mobile: visual arriba, texto abajo, todo dentro de la pantalla fija. */
   @media (max-width: 959px) {
@@ -688,41 +379,13 @@ const routeLabel = lang === "es" ? "método" : "method";
     :global(.has-chapters) .chapter__body {
       font-size: 0.98rem;
     }
-    :global(.has-chapters) .screen:not(.screen--bitewave) {
-      aspect-ratio: 4 / 3;
-    }
+
     :global(.has-chapters) .chapter__bignum {
       top: auto;
       bottom: 0;
       right: -4vw;
       font-size: 60vw;
       transform: none;
-    }
-    /* En el celular el registro muestra solo el paso actual. */
-    :global(.has-chapters) .hud__title {
-      display: none;
-    }
-    :global(.has-chapters) .hud__line {
-      display: none;
-    }
-    :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"],
-    :global(.has-chapters) .chapter[data-step="1"] .hud__line[data-h="1"],
-    :global(.has-chapters) .chapter[data-step="2"] .hud__line[data-h="2"] {
-      display: flex;
-    }
-    .hud {
-      font-size: 0.6rem;
-      left: 0.5rem;
-      bottom: 0.5rem;
-      padding: 0.45rem 0.55rem;
-    }
-    .routes,
-    .saving {
-      right: 0.5rem;
-      top: 0.5rem;
-    }
-    .route {
-      grid-template-columns: 4.2rem 1fr;
     }
   }
 </style>

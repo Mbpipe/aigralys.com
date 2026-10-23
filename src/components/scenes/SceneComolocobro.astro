@@ -1,0 +1,323 @@
+---
+import SceneBar from "./SceneBar.astro";
+
+interface Props {
+  tasks: string[];
+  lang: "es" | "en";
+}
+const { tasks, lang } = Astro.props;
+const es = lang === "es";
+const fmt = (n: number) => n.toLocaleString(es ? "es-AR" : "en-US");
+
+const routes = es
+  ? [
+      { n: "Transferencia SWIFT", f: "comisión y gastos ≈ US$ 58", net: 1942 },
+      { n: "Plataforma freelance", f: "3 % más retiro ≈ US$ 75", net: 1925 },
+      { n: "Cuenta global en USD", f: "costo total ≈ US$ 12", net: 1988, best: true },
+      { n: "Billetera cripto", f: "spread ≈ 1,5 %", net: 1970 },
+    ]
+  : [
+      { n: "SWIFT transfer", f: "fees and charges ≈ US$ 58", net: 1942 },
+      { n: "Freelance platform", f: "3 % plus withdrawal ≈ US$ 75", net: 1925 },
+      { n: "Global USD account", f: "total cost ≈ US$ 12", net: 1988, best: true },
+      { n: "Crypto wallet", f: "spread ≈ 1.5 %", net: 1970 },
+    ];
+const L = es
+  ? { paid: "te pagan", per: "por mes", fx: "dólar en vivo", net: "en mano", best: "mejor ruta", jobs: ["escalas de monotributo 2026", "guía de factura E", "comparativa al día"] }
+  : { paid: "you're paid", per: "per month", fx: "live rate", net: "you keep", best: "best route", jobs: ["2026 monotributo brackets", "invoice E guide", "comparison up to date"] };
+
+// Geometría en el viewBox 1000×490.
+const sx = 250;
+const sy = 245;
+const ex = 640;
+const ys = [70, 185, 300, 415];
+const paths = ys.map((y) => `M${sx},${sy} C${sx + 170},${sy} ${ex - 170},${y} ${ex},${y}`);
+---
+
+<div class="scene scene--cl2" data-scene="comolocobro">
+  <SceneBar agent="payout-agent" tasks={tasks} />
+
+  <div class="cc">
+    <svg class="cc__lanes" viewBox="0 0 1000 490" preserveAspectRatio="none" aria-hidden="true">
+      {
+        paths.map((d, k) => (
+          <g class:list={["cc__lane", { "cc__lane--best": routes[k].best }]}>
+            <path class="cc__path" d={d} />
+            {[0, 1, 2, 3].map((j) => (
+              <circle class="cc__p" r="4">
+                <animateMotion dur={`${2.2 + k * 0.25}s`} begin={`${j * 0.55 + k * 0.2}s`} repeatCount="indefinite" path={d} />
+              </circle>
+            ))}
+          </g>
+        ))
+      }
+    </svg>
+
+    <div class="cc__src mono">
+      <span class="cc__muted">{L.paid}</span>
+      <b>USD 2.000</b>
+      <span class="cc__muted">{L.per}</span>
+    </div>
+
+    <div class="cc__fx mono" aria-hidden="true">
+      <span class="cc__live"></span>{L.fx} <b data-fx>$ 1.428,50</b>
+    </div>
+
+    <ul class="cc__jobs mono" aria-hidden="true">
+      {L.jobs.map((j, k) => <li style={`--k:${k}`}><span>✓</span> {j}</li>)}
+    </ul>
+
+    {
+      routes.map((r, k) => (
+        <div class:list={["cc__card", { "cc__card--best": r.best }]} style={`top:${(ys[k] / 490) * 100}%;--k:${k}`}>
+          <span class="cc__name">{r.n}</span>
+          <span class="cc__fee mono">{r.f}</span>
+          <span class="cc__net mono">
+            <b data-net={r.net} data-fmt={es ? "es-AR" : "en-US"}>USD {fmt(r.net)}</b> <span class="cc__muted">{L.net}</span>
+          </span>
+          {r.best && <span class="cc__badge mono">{L.best}</span>}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for (const scene of document.querySelectorAll<HTMLElement>('[data-scene="comolocobro"]')) {
+    const chapter = scene.closest<HTMLElement>("[data-chapter]")!;
+    const fx = scene.querySelector<HTMLElement>("[data-fx]")!;
+    const nets = [...scene.querySelectorAll<HTMLElement>("[data-net]")];
+    if (still) continue;
+    let visible = false;
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(scene);
+
+    // El dólar "en vivo" se mueve un poco.
+    let rate = 1428.5;
+    setInterval(() => {
+      if (!visible) return;
+      rate += (Math.random() - 0.5) * 3.2;
+      fx.textContent = "$ " + rate.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }, 900);
+
+    // Los netos cuentan hacia arriba cuando arranca la comparación.
+    let counted = false;
+    const count = () => {
+      const step = Number(chapter.dataset.step || 0);
+      if (step >= 1 && !counted) {
+        counted = true;
+        const t0 = performance.now();
+        const run = (now: number) => {
+          const k = Math.min(1, (now - t0) / 1100);
+          const e = 1 - Math.pow(1 - k, 3);
+          for (const n of nets) {
+            const v = Math.round(Number(n.dataset.net) * e);
+            n.textContent = "USD " + v.toLocaleString(n.dataset.fmt);
+          }
+          if (k < 1) requestAnimationFrame(run);
+        };
+        requestAnimationFrame(run);
+      } else if (step === 0 && counted) {
+        counted = false;
+      }
+    };
+    nets.forEach((n) => (n.textContent = "USD 0"));
+    new MutationObserver(count).observe(chapter, { attributes: true, attributeFilter: ["data-step"] });
+    count();
+  }
+</script>
+
+<style>
+  .scene--cl2 {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(226, 172, 85, 0.07), transparent 55%),
+      #0A1322;
+  }
+  .cc {
+    position: absolute;
+    inset: 7.2cqw 0 0 0;
+    font-size: clamp(7px, 1.12cqw, 12px);
+  }
+  .cc__muted {
+    color: var(--slate);
+  }
+  .cc__lanes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .cc__path {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .cc__p {
+    fill: var(--slate);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  :global(.chapter:is([data-step="1"], [data-step="2"])) .cc__p {
+    opacity: 0.9;
+  }
+  :global(.chapter[data-step="2"]) .cc__lane--best .cc__path {
+    stroke: rgba(226, 172, 85, 0.7);
+  }
+  :global(.chapter[data-step="2"]) .cc__lane--best .cc__p {
+    fill: var(--gold);
+  }
+  :global(.chapter[data-step="2"]) .cc__lane:not(.cc__lane--best) {
+    opacity: 0.35;
+  }
+
+  .cc__src {
+    position: absolute;
+    left: 3%;
+    top: 50%;
+    width: 21%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    padding: 1.1em 1.2em;
+    background: rgba(6, 12, 23, 0.85);
+    border: 1px solid rgba(226, 172, 85, 0.55);
+    border-radius: 6px;
+    box-shadow: 0 0 30px rgba(226, 172, 85, 0.12);
+  }
+  .cc__src b {
+    font-size: 1.9em;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+  }
+
+  .cc__fx {
+    position: absolute;
+    left: 3%;
+    top: 5%;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    color: var(--slate);
+  }
+  .cc__fx b {
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .cc__live {
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: #5BD08A;
+    box-shadow: 0 0 8px rgba(91, 208, 138, 0.8);
+  }
+
+  .cc__jobs {
+    position: absolute;
+    left: 3%;
+    bottom: 5%;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    color: var(--slate);
+  }
+  .cc__jobs li {
+    opacity: 0.3;
+    transition: opacity 0.4s ease;
+    transition-delay: calc(var(--k) * 0.2s);
+  }
+  .cc__jobs span {
+    color: var(--gold);
+  }
+  :global(.chapter:is([data-step="1"], [data-step="2"])) .cc__jobs li {
+    opacity: 1;
+  }
+
+  .cc__card {
+    position: absolute;
+    left: 65%;
+    right: 3%;
+    transform: translateY(-50%);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.2em 1em;
+    padding: 0.75em 1em;
+    background: rgba(6, 12, 23, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition:
+      border-color 0.4s ease,
+      opacity 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+  .cc__name {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .cc__fee {
+    grid-column: 1;
+    color: var(--slate);
+    font-size: 0.9em;
+  }
+  .cc__net {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9em;
+  }
+  .cc__net b {
+    font-size: 1.35em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .cc__badge {
+    position: absolute;
+    top: -0.9em;
+    right: 0.8em;
+    padding: 0.1em 0.5em;
+    font-size: 0.85em;
+    color: var(--navy);
+    background: var(--gold);
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  :global(.chapter[data-step="2"]) .cc__card--best {
+    border-color: var(--gold);
+    box-shadow: 0 0 30px rgba(226, 172, 85, 0.25);
+  }
+  :global(.chapter[data-step="2"]) .cc__card--best .cc__net b {
+    color: var(--gold);
+  }
+  :global(.chapter[data-step="2"]) .cc__card--best .cc__badge {
+    opacity: 1;
+  }
+  :global(.chapter[data-step="2"]) .cc__card:not(.cc__card--best) {
+    opacity: 0.45;
+  }
+
+  @container (max-width: 520px) {
+    .cc__jobs,
+    .cc__fee {
+      display: none;
+    }
+    .cc__src {
+      width: 26%;
+      padding: 0.7em;
+    }
+    .cc__src b {
+      font-size: 1.4em;
+    }
+    .cc__card {
+      left: 58%;
+      padding: 0.45em 0.6em;
+    }
+  }
+</style>

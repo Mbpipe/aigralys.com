@@ -59,7 +59,6 @@ type Strings = {
     heading: string;
     intro: string;
     labels: { problem: string; ai: string; result: string };
-    hudTitle: string;
     items: Case[];
   };
   process: { heading: string; steps: { title: string; body: string }[] };
@@ -118,7 +117,6 @@ export const strings: Record<Lang, Strings> = {
       heading: "Casos",
       intro: "Cuatro proyectos, cuatro formas de poner IA a trabajar: agentes creativos, análisis automático, motores de decisión y sensores que entienden lo que pasa.",
       labels: { problem: "El problema", ai: "Qué hace la IA", result: "Resultado" },
-      hudTitle: "registro",
       items: [
         {
           id: "bancor",
@@ -235,7 +233,6 @@ export const strings: Record<Lang, Strings> = {
       heading: "Work",
       intro: "Four projects, four ways to put AI to work: creative agents, automated analysis, decision engines and sensors that understand what's happening.",
       labels: { problem: "The problem", ai: "What the AI does", result: "Outcome" },
-      hudTitle: "log",
       items: [
         {
           id: "bancor",

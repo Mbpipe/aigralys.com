@@ -1,0 +1,225 @@
+---
+import SceneBar from "./SceneBar.astro";
+
+interface Props {
+  tasks: string[];
+  lang: "es" | "en";
+}
+const { tasks, lang } = Astro.props;
+const COLS = 8;
+const ROWS = 5;
+// Orden de render por tiles, del centro hacia afuera (como Cycles).
+const tiles = Array.from({ length: COLS * ROWS }, (_, i) => {
+  const c = i % COLS;
+  const r = Math.floor(i / COLS);
+  const d = Math.hypot((c + 0.5) / COLS - 0.5, ((r + 0.5) / ROWS - 0.5) * 0.7);
+  return { c, r, d };
+});
+const order = [...tiles].sort((a, b) => a.d - b.d);
+const rank = new Map(order.map((t, k) => [`${t.c}-${t.r}`, k]));
+const L =
+  lang === "es"
+    ? { panel: "render / cycles", samples: "muestras", light: "luz LED", cam: "cámara", tiles: "tiles", denoise: "denoise", on: "activo" }
+    : { panel: "render / cycles", samples: "samples", light: "LED light", cam: "camera", tiles: "tiles", denoise: "denoise", on: "on" };
+---
+
+<div class="scene scene--bancor" data-scene="bancor">
+  <SceneBar agent="render-agent" tasks={tasks} />
+
+  <div class="bz__stage">
+    {
+      ["dia", "atardecer", "noche"].map((v) => (
+        <img class="bz__img" data-view={v} src={`/work/bancor-${v}.webp`} alt="" width="1800" height="1013" loading="lazy" decoding="async" />
+      ))
+    }
+    <div class="bz__tiles" aria-hidden="true">
+      {
+        tiles.map((t) => (
+          <span
+            class="bz__tile"
+            data-rank={rank.get(`${t.c}-${t.r}`)}
+            style={`--c:${t.c};--r:${t.r};background-position:${(t.c / (COLS - 1)) * 100}% ${(t.r / (ROWS - 1)) * 100}%`}
+          />
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="bz__panel mono" aria-hidden="true">
+    <p class="bz__ptitle">{L.panel}</p>
+    <p><span>{L.samples}</span><b>512</b></p>
+    <p><span>{L.light}</span><b>4000 K</b></p>
+    <p><span>{L.cam}</span><b>35 mm f/8</b></p>
+    <p><span>{L.denoise}</span><b>{L.on}</b></p>
+    <p><span>{L.tiles}</span><b data-tiles>0 / {COLS * ROWS}</b></p>
+    <span class="bz__bar"><span data-bar></span></span>
+  </div>
+</div>
+
+<script>
+  // El scroll del capítulo (--p) decide cuántos tiles ya están renderizados.
+  for (const scene of document.querySelectorAll<HTMLElement>('[data-scene="bancor"]')) {
+    const chapter = scene.closest<HTMLElement>("[data-chapter]")!;
+    const tiles = [...scene.querySelectorAll<HTMLElement>(".bz__tile")];
+    const total = tiles.length;
+    const label = scene.querySelector<HTMLElement>("[data-tiles]")!;
+    const bar = scene.querySelector<HTMLElement>("[data-bar]")!;
+    let last = -1;
+    let queued = false;
+    const tick = () => {
+      queued = false;
+      const p = parseFloat(getComputedStyle(chapter).getPropertyValue("--p")) || 0;
+      const done = Math.round(Math.min(1, Math.max(0, (p - 0.06) / 0.32)) * total);
+      if (done !== last) {
+        last = done;
+        for (const t of tiles) {
+          const r = Number(t.dataset.rank);
+          t.classList.toggle("is-done", r < done);
+          t.classList.toggle("is-active", r === done);
+        }
+        label.textContent = `${done} / ${total}`;
+        bar.style.width = `${(done / total) * 100}%`;
+      }
+    };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      tiles.forEach((t) => t.classList.add("is-done"));
+      label.textContent = `${total} / ${total}`;
+      bar.style.width = "100%";
+    } else {
+      addEventListener(
+        "scroll",
+        () => {
+          if (!queued) {
+            queued = true;
+            requestAnimationFrame(tick);
+          }
+        },
+        { passive: true },
+      );
+      requestAnimationFrame(tick);
+    }
+  }
+</script>
+
+<style>
+  .bz__stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .bz__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bz__img[data-view="atardecer"],
+  .bz__img[data-view="noche"] {
+    opacity: 0;
+  }
+  :global(.has-chapters) .bz__img {
+    transform: scale(calc(1.12 - var(--p, 0) * 0.12));
+  }
+
+  /* Tiles en "clay": la misma imagen en gris, con grilla de viewport. */
+  .bz__tiles {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+  }
+  .bz__tile {
+    position: relative;
+    background-image:
+      linear-gradient(rgba(120, 160, 210, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120, 160, 210, 0.07) 1px, transparent 1px),
+      url("/work/bancor-dia.webp");
+    background-size:
+      12px 12px,
+      12px 12px,
+      800% 500%;
+    background-blend-mode: normal;
+    filter: grayscale(1) contrast(1.25) brightness(0.5);
+    transition: opacity 0.35s ease;
+  }
+  .bz__tile.is-done {
+    opacity: 0;
+  }
+  .bz__tile.is-active {
+    filter: none;
+    background: rgba(6, 12, 23, 0.35);
+    outline: 2px solid var(--gold);
+    outline-offset: -2px;
+    box-shadow: inset 0 0 24px rgba(226, 172, 85, 0.35);
+    z-index: 1;
+  }
+  .bz__tile.is-active::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(226, 172, 85, 0.25), transparent);
+    animation: sweep 0.9s linear infinite;
+  }
+  @keyframes sweep {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .bz__panel {
+    position: absolute;
+    right: 1.6cqw;
+    top: 9cqw;
+    z-index: 4;
+    width: 22cqw;
+    min-width: 120px;
+    padding: 1.1cqw 1.3cqw;
+    font-size: clamp(7px, 1.05cqw, 11px);
+    background: rgba(6, 12, 23, 0.84);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45em;
+    color: var(--slate);
+  }
+  .bz__panel p {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+  }
+  .bz__panel b {
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .bz__ptitle {
+    color: var(--gold) !important;
+    margin-bottom: 0.2em;
+  }
+  .bz__bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.2em;
+  }
+  .bz__bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(226, 172, 85, 0.8);
+  }
+
+  @container (max-width: 520px) {
+    .bz__panel {
+      display: none;
+    }
+  }
+</style>
