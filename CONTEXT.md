@@ -7,7 +7,7 @@
   - clearlit (`cost-agent`): árbol de archivos escaneado, curva de costo hoy vs. con arreglos, 3 hallazgos y el arreglo tipeándose.
   - comolocobro (`payout-agent`): USD 2.000 fluyendo por 4 rutas de cobro, netos que cuentan, dólar en vivo, gana la mejor ruta.
   - Bitewave (`bitewave-edge`): sin referencias a pesca. Concepto IoT + Edge AI: el dispositivo interpreta, no solo mide. Loop de 16 s sobre el aireador de un silo (foto `bitewave-campo.webp`): vibración en vivo, sensor tradicional (mm/s casi igual) vs. Bitewave (patrón habitual / desvío / patrón distinto), clasificador en el dispositivo, puntaje de anomalía con umbral y aviso al celular.
-- Equilibrio de casos: la comparación sensor tradicional vs. tinyML vive en el resultado de Bitewave; las 10 aplicaciones agro quedan como franja corta de nombres debajo del capítulo (`src/components/Agro.astro`), para que Bitewave no pese más que clearlit o comolocobro.
+- Equilibrio de casos: la comparación sensor tradicional vs. tinyML vive en el resultado de Bitewave; las 10 aplicaciones agro quedan como grilla compacta de tarjetas (señal, sensor, IA) debajo del capítulo (`src/components/Agro.astro`), para que Bitewave no pese más que clearlit o comolocobro.
 - Fuentes autoalojadas con @fontsource (sin Google Fonts).
 - OG image nueva con el claim actual, apple-touch-icon, JSON-LD de Organization.
 - Contacto con panel y fondo de puntos; números de "Cómo trabajamos" en contorno.

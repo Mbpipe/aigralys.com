@@ -61,7 +61,14 @@ type Strings = {
     labels: { problem: string; ai: string; result: string };
     items: Case[];
   };
-  agro: { lead: string; items: string[]; cta: string };
+  agro: {
+    lead: string;
+    sub: string;
+    local: string;
+    optional: string;
+    items: { n: string; s: string; kind: "audio" | "motion" | "vibration" | "env" | "event"; ai: boolean }[];
+    cta: string;
+  };
   process: { heading: string; steps: { title: string; body: string }[] };
   contact: {
     heading: string;
@@ -169,17 +176,20 @@ export const strings: Record<Lang, Strings> = {
     },
     agro: {
       lead: "La misma base también escucha",
+      sub: "Diez aplicaciones para el campo que podemos construir.",
+      local: "IA en el dispositivo",
+      optional: "IA opcional",
       items: [
-        "detección acústica de plagas",
-        "actividad del ganado",
-        "mantenimiento predictivo de maquinaria",
-        "funcionamiento de bombas",
-        "silos inteligentes",
-        "humedad de suelo",
-        "apertura de tranqueras",
-        "colmenas",
-        "anomalías en molinos",
-        "actividad de aves",
+        { n: "Detección acústica de plagas", s: "micrófono", kind: "audio", ai: true },
+        { n: "Actividad del ganado", s: "acelerómetro", kind: "motion", ai: true },
+        { n: "Mantenimiento predictivo de maquinaria", s: "vibración", kind: "vibration", ai: true },
+        { n: "Funcionamiento de bombas", s: "vibración y corriente", kind: "vibration", ai: true },
+        { n: "Silos inteligentes", s: "temperatura, humedad, CO₂", kind: "env", ai: false },
+        { n: "Humedad de suelo", s: "sensor de suelo", kind: "env", ai: false },
+        { n: "Apertura de tranqueras", s: "contacto magnético", kind: "event", ai: false },
+        { n: "Colmenas", s: "micrófono y balanza", kind: "audio", ai: true },
+        { n: "Anomalías en molinos", s: "vibración", kind: "vibration", ai: true },
+        { n: "Actividad de aves", s: "micrófono", kind: "audio", ai: true },
       ],
       cta: "¿Otra idea? Contanos",
     },
@@ -301,17 +311,20 @@ export const strings: Record<Lang, Strings> = {
     },
     agro: {
       lead: "The same base also listens to",
+      sub: "Ten farm applications we can build.",
+      local: "on-device AI",
+      optional: "AI optional",
       items: [
-        "acoustic pest detection",
-        "livestock activity",
-        "predictive machinery maintenance",
-        "pump monitoring",
-        "smart silos",
-        "soil moisture",
-        "gate opening alerts",
-        "beehives",
-        "windmill anomalies",
-        "bird activity",
+        { n: "Acoustic pest detection", s: "microphone", kind: "audio", ai: true },
+        { n: "Livestock activity", s: "accelerometer", kind: "motion", ai: true },
+        { n: "Predictive machinery maintenance", s: "vibration", kind: "vibration", ai: true },
+        { n: "Pump monitoring", s: "vibration and current", kind: "vibration", ai: true },
+        { n: "Smart silos", s: "temperature, humidity, CO₂", kind: "env", ai: false },
+        { n: "Soil moisture", s: "soil probe", kind: "env", ai: false },
+        { n: "Gate opening alerts", s: "magnetic contact", kind: "event", ai: false },
+        { n: "Beehives", s: "microphone and scale", kind: "audio", ai: true },
+        { n: "Windmill anomalies", s: "vibration", kind: "vibration", ai: true },
+        { n: "Bird activity", s: "microphone", kind: "audio", ai: true },
       ],
       cta: "Another idea? Tell us",
     },

@@ -1,5 +1,5 @@
 ---
-// Franja corta debajo de Bitewave: muestra la amplitud sin competir con los casos.
+// Grilla compacta debajo de Bitewave: muestra la amplitud sin competir con los casos.
 import { strings, type Lang } from "../i18n/strings";
 
 interface Props {
@@ -7,52 +7,84 @@ interface Props {
 }
 const { lang } = Astro.props;
 const a = strings[lang].agro;
+
+// Firma de señal por tipo de sensor (SVG 120×36, determinística).
+let seed = 11;
+const rnd = () => {
+  seed = (seed * 16807) % 2147483647;
+  return (seed - 1) / 2147483646;
+};
+const sig = (kind: string) => {
+  const pts: string[] = [];
+  for (let x = 0; x <= 240; x += 2) {
+    let y = 18;
+    if (kind === "audio") y += (rnd() - 0.5) * 22 * (0.4 + 0.6 * Math.abs(Math.sin(x / 19)));
+    if (kind === "motion") y += Math.sin(x / 9) * 4 + (Math.floor(x / 30) % 3 === 1 ? Math.sin(x / 2) * 9 : 0);
+    if (kind === "vibration") y += Math.sin(x * 0.9) * 12 * Math.exp(-((x % 60) / 18));
+    if (kind === "env") y += Math.sin(x / 26) * 9 + Math.sin(x / 11) * 2;
+    if (kind === "event") y += Math.floor(x / 40) % 3 === 1 ? -10 : 8;
+    pts.push(`${x / 2},${y.toFixed(1)}`);
+  }
+  return pts.join(" ");
+};
 ---
 
-<aside class="agro" aria-label={a.lead}>
-  <div class="container agro__inner" data-reveal>
-    <p class="agro__lead mono">{a.lead}</p>
-    <ul class="agro__list" role="list">
-      {a.items.map((it, i) => <li style={`--i:${i}`}>{it}</li>)}
+<section class="agro" aria-labelledby="agro-title">
+  <div class="container">
+    <div class="agro__head">
+      <div>
+        <h3 class="agro__title" id="agro-title">{a.lead}</h3>
+        <p class="agro__sub">{a.sub}</p>
+      </div>
+      <a class="agro__cta mono" href="#contacto">{a.cta}</a>
+    </div>
+
+    <ul class="agro__grid" role="list" data-reveal>
+      {
+        a.items.map((it, i) => (
+          <li class="agro__card" style={`--i:${i}`}>
+            <svg class="agro__sig" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points={sig(it.kind)} />
+            </svg>
+            <p class="agro__name">{it.n}</p>
+            <p class="agro__meta mono">
+              <span>{it.s}</span>
+              <span class:list={["agro__ai", { "agro__ai--on": it.ai }]}>{it.ai ? a.local : a.optional}</span>
+            </p>
+          </li>
+        ))
+      }
     </ul>
-    <a class="agro__cta mono" href="#contacto">{a.cta}</a>
   </div>
-</aside>
+</section>
 
 <style>
   .agro {
-    padding-block: clamp(1.75rem, 4vh, 2.5rem) clamp(3rem, 8vh, 4.5rem);
+    padding-block: clamp(2rem, 5vh, 3rem) clamp(4rem, 10vh, 6rem);
   }
-  .agro__inner {
+  .agro__head {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.75rem 1.25rem;
-    padding-top: 1.5rem;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-top: 2rem;
     border-top: 1px solid var(--border);
   }
-  .agro__lead {
-    font-size: 0.85rem;
-    color: var(--gold);
-  }
-  .agro__list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    flex: 1 1 32rem;
-  }
-  .agro__list li {
+  .agro__title {
     font-family: var(--mono);
-    font-size: 0.8rem;
-    color: #a9b5c4;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.25rem 0.75rem;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.4vw, 2.3rem);
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+  .agro__sub {
+    margin-top: 0.4rem;
+    color: var(--slate);
   }
   .agro__cta {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: var(--gold);
     border-bottom: 1px solid currentColor;
     padding-bottom: 1px;
@@ -62,18 +94,128 @@ const a = strings[lang].agro;
     color: var(--ink);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .agro__list li {
-      opacity: 0;
-      transform: translateY(6px);
-      transition:
-        opacity 0.5s var(--ease-out),
-        transform 0.5s var(--ease-out);
-      transition-delay: calc(var(--i) * 40ms);
+  .agro__grid {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.75rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (min-width: 760px) {
+    .agro__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    :global(.js) .agro__inner.is-in li {
+  }
+  @media (min-width: 1080px) {
+    .agro__grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .agro__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 1rem 1rem 0.9rem;
+    background: rgba(6, 12, 23, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.25s var(--ease-out);
+  }
+  .agro__card:hover {
+    border-color: rgba(226, 172, 85, 0.55);
+    box-shadow: 0 20px 50px -25px rgba(226, 172, 85, 0.45);
+    transform: translateY(-2px);
+  }
+
+  .agro__sig {
+    width: 100%;
+    height: 2.2rem;
+    overflow: visible;
+  }
+  .agro__sig polyline {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+    stroke-dasharray: 4 2;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.85;
+  }
+  .agro__card:hover .agro__sig polyline {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(226, 172, 85, 0.9));
+  }
+
+  .agro__name {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    flex: 1;
+  }
+  .agro__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.72rem;
+    color: var(--slate);
+  }
+  .agro__ai {
+    position: relative;
+    padding-left: 0.9em;
+  }
+  .agro__ai::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 0.5em;
+    height: 0.5em;
+    margin-top: -0.25em;
+    border-radius: 50%;
+    border: 1px solid var(--slate);
+  }
+  .agro__ai--on {
+    color: var(--gold);
+  }
+  .agro__ai--on::before {
+    border-color: var(--gold);
+    background: var(--gold);
+    box-shadow: 0 0 6px rgba(226, 172, 85, 0.8);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .agro__sig polyline {
+      animation: flow 2.4s linear infinite;
+    }
+    :global(.js) .agro__card {
+      opacity: 0;
+      transform: translateY(12px);
+      transition:
+        opacity 0.6s var(--ease-out),
+        transform 0.6s var(--ease-out),
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+      transition-delay: calc(var(--i) * 50ms), calc(var(--i) * 50ms), 0s, 0s;
+    }
+    :global(.js) .agro__grid.is-in .agro__card {
       opacity: 1;
       transform: none;
+    }
+    :global(.js) .agro__grid.is-in .agro__card:hover {
+      transform: translateY(-2px);
+    }
+  }
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -24;
     }
   }
 </style>
