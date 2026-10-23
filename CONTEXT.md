@@ -3,8 +3,9 @@
 ## v2 (2026-10-23, tarde) — estado vigente
 - Sin menú de servicios: sección abierta "La IA puede…" con frases que se tipean solas + marquee de capacidades. Mensaje: no hay catálogo, se arranca por el problema del cliente.
 - Hero con campo de partículas animado en canvas (reacciona al mouse, emite pulsos). Título enorme que entra palabra por palabra.
-- Bancor Arena: sección fija que, con el scroll, pasa el render de día a atardecer y a noche, con zoom y el texto problema / IA / resultado.
-- Casos con revelado tipo cortina e inclinación 3D al pasar el mouse; Bitewave dibuja la señal y tiene un cabezal que recorre las notas.
+- Casos como 4 capítulos con el mismo peso (Bancor Arena, clearlit, comolocobro, Bitewave): pantalla fija, texto problema / IA / resultado que avanza con el scroll, pantalla que entra girando y un "registro" del agente que se completa paso a paso.
+  - Bancor: render de día → atardecer → noche. clearlit: línea de escaneo, 3 trampas de costo y "USD 800 → 75". comolocobro: barras de métodos de cobro y gana uno. Bitewave: clip del video HUD real (`public/work/bitewave-hud.mp4`, recorte de `bitewave-v2-169.mp4` del vault).
+  - Bitewave: código en el repo privado `Mbpipe/bitewave` (en la Mac en `~/bitewave`), contexto en el vault `Personal/Pesca/Bitewave/Bitewave.md`.
 - Formulario sin selector de servicio (texto libre).
 - Header fijo con blur al bajar; footer con wordmark gigante.
 - Movimiento reducido: todo se muestra estático.

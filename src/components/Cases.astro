@@ -7,170 +7,153 @@ interface Props {
 }
 const { lang } = Astro.props;
 const t = strings[lang];
-const [bancor, ...rest] = t.cases.items;
-const views = ["dia", "atardecer", "noche"] as const;
-const story = [
-  { label: t.cases.labels.problem, text: bancor.problem },
-  { label: t.cases.labels.ai, text: bancor.ai },
-  { label: t.cases.labels.result, text: bancor.result },
-];
+const total = String(t.cases.items.length).padStart(2, "0");
+const L = t.cases.labels;
 
-// Visual de Bitewave: señal de vibración → eventos → notas MIDI (determinístico).
-const W = 800;
-const H = 450;
-let seed = 7;
-const rand = () => {
-  seed = (seed * 16807) % 2147483647;
-  return (seed - 1) / 2147483646;
-};
-const bursts = [140, 330, 470, 640];
-const mid = 130;
-const pts: string[] = [];
-for (let x = 0; x <= W; x += 4) {
-  let amp = 6 + rand() * 6;
-  for (const b of bursts) {
-    const d = Math.abs(x - b);
-    if (d < 40) amp += (1 - d / 40) * 85;
-  }
-  const y = mid + Math.sin(x * 0.55) * amp * (0.6 + rand() * 0.4);
-  pts.push(`${x},${y.toFixed(1)}`);
-}
-const wave = pts.join(" ");
-const rows = 8;
-const rollTop = 270;
-const rowH = 18;
-const notes = bursts.flatMap((b, i) => [
-  { x: b - 10, w: 70 + i * 8, r: (i * 3) % rows, d: i },
-  { x: b + 20, w: 44, r: (i * 3 + 2) % rows, d: i + 0.3 },
-  { x: b + 60, w: 28, r: (i * 3 + 5) % rows, d: i + 0.6 },
-]);
-const labels =
-  lang === "es"
-    ? { wave: "vibración", events: "eventos", midi: "notas midi" }
-    : { wave: "vibration", events: "events", midi: "midi notes" };
+// Posiciones de las trampas de costo sobre la captura de clearlit (en % del cuadro).
+const traps = [
+  { x: 54, y: 47 },
+  { x: 54, y: 64 },
+  { x: 54, y: 75 },
+];
+// Rutas de cobro (anchos relativos del neto), la ganadora resaltada.
+const routes = [{ w: 72 }, { w: 88 }, { w: 97, best: true }, { w: 81 }];
+const routeLabel = lang === "es" ? "método" : "method";
 ---
 
 <section class="cases-sec" id="casos" aria-labelledby="casos-title">
-  <div class="container">
+  <div class="container cases-intro">
     <Words text={t.cases.heading} class="section__title" id="casos-title" />
     <p class="section__intro">{t.cases.intro}</p>
-  </div>
-
-  <!-- Bancor Arena: el scroll lleva el render del día a la noche. -->
-  <article class="scrolly" aria-labelledby="case-bancor" data-scrolly>
-    <div class="scrolly__sticky">
-      <div class="scrolly__media">
-        {
-          views.map((v, i) => (
-            <img
-              class="scrolly__img"
-              data-view={v}
-              src={`/work/bancor-${v}.webp`}
-              alt={i === 2 ? `Bancor Arena, render ${t.cases.views[v]}` : ""}
-              width="1800"
-              height="1013"
-              loading="lazy"
-              decoding="async"
-            />
-          ))
-        }
-      </div>
-
-      <div class="container scrolly__ui">
-        <header class="scrolly__head">
-          <span class="scrolly__kind mono">{bancor.kind}</span>
-          <h3 class="scrolly__name" id="case-bancor">{bancor.name}</h3>
-          <ul class="scrolly__tags" role="list">{bancor.tags.map((g) => <li class="tag">{g}</li>)}</ul>
-        </header>
-
-        <div class="scrolly__story">
-          {
-            story.map((s, i) => (
-              <div class="scrolly__step" data-step={i}>
-                <p class="scrolly__label mono">{s.label}</p>
-                <p class="scrolly__text">{s.text}</p>
-                {i === 2 && bancor.href && (
-                  <a class="case__link mono" href={bancor.href} target="_blank" rel="noopener">
-                    {bancor.hrefLabel}
-                  </a>
-                )}
-              </div>
-            ))
-          }
-        </div>
-
-        <div class="scrolly__meter mono" aria-hidden="true">
-          {views.map((v) => <span data-meter={v}>{t.cases.views[v]}</span>)}
-          <span class="scrolly__caption">{t.cases.caption}</span>
-        </div>
-      </div>
-    </div>
-  </article>
-
-  <!-- Resto de los casos -->
-  <div class="container">
-    <ul class="cases" role="list">
+    <ol class="cases-index mono" role="list">
       {
-        rest.map((c, idx) => (
+        t.cases.items.map((c, i) => (
           <li>
-            <article class:list={["case", { "case--flip": idx % 2 === 1 }]} aria-labelledby={`case-${c.id}`} data-reveal>
-              <div class="case__media" data-tilt>
-                <div class="case__frame">
-                  {c.shot ? (
-                    <img src={c.shot} alt={`${c.name}`} loading="lazy" decoding="async" />
-                  ) : (
-                    <svg class="signal" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${c.name}: ${labels.wave}, ${labels.events}, ${labels.midi}`}>
-                      <text class="signal__label" x="24" y="34">{labels.wave}</text>
-                      <polyline class="signal__wave" points={wave} pathLength="1" />
-                      {bursts.map((b, i) => (
-                        <line class="signal__event" x1={b} x2={b} y1="30" y2={rollTop + rows * rowH} style={`--d:${i}`} />
-                      ))}
-                      <text class="signal__label" x="24" y={rollTop - 14}>{labels.midi}</text>
-                      {Array.from({ length: rows + 1 }, (_, r) => (
-                        <line class="signal__grid" x1="0" x2={W} y1={rollTop + r * rowH} y2={rollTop + r * rowH} />
-                      ))}
-                      {notes.map((n) => (
-                        <rect class="signal__note" x={n.x} y={rollTop + n.r * rowH + 3} width={n.w} height={rowH - 6} rx="2" style={`--d:${n.d}`} />
-                      ))}
-                      <text class="signal__label signal__label--gold" x={bursts[0] + 8} y="58">{labels.events}</text>
-                      <line class="signal__playhead" x1="0" x2="0" y1="20" y2={rollTop + rows * rowH + 10} />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <div class="case__body">
-                <span class="case__num mono">{String(idx + 2).padStart(2, "0")} / {String(t.cases.items.length).padStart(2, "0")}</span>
-                <div class="case__head">
-                  <h3 class="case__name" id={`case-${c.id}`}>{c.name}</h3>
-                  <span class="case__kind mono">{c.kind}</span>
-                </div>
-                <p class="case__problem">{c.problem}</p>
-                <p class="case__ai">{c.ai}</p>
-                <p class="case__result">{c.result}</p>
-                <ul class="case__tags" role="list">{c.tags.map((g) => <li class="tag">{g}</li>)}</ul>
-                {c.href && (
-                  <a class="case__link mono" href={c.href} target="_blank" rel="noopener">{c.hrefLabel}</a>
-                )}
-              </div>
-            </article>
+            <a href={`#case-${c.id}`}>
+              <span class="gold">{String(i + 1).padStart(2, "0")}</span> {c.name}
+            </a>
           </li>
         ))
       }
-    </ul>
+    </ol>
   </div>
+
+  {
+    t.cases.items.map((c, i) => (
+      <article class="chapter" data-chapter={c.id} data-step="0" aria-labelledby={`case-${c.id}-name`} id={`case-${c.id}`}>
+        <div class="chapter__stage">
+          <span class="chapter__bignum mono" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+          <div class="container chapter__grid">
+            <div class="chapter__text">
+              <p class="chapter__num mono">
+                <span><span class="gold">{String(i + 1).padStart(2, "0")}</span> / {total}</span>
+                <span>{c.kind}</span>
+              </p>
+              <h3 class="chapter__name" id={`case-${c.id}-name`}>{c.name}</h3>
+              <ul class="chapter__tags" role="list">{c.tags.map((g) => <li class="tag">{g}</li>)}</ul>
+
+              <div class="chapter__story">
+                {[
+                  [L.problem, c.problem],
+                  [L.ai, c.ai],
+                  [L.result, c.result],
+                ].map(([label, text], s) => (
+                  <div class="chapter__step" data-s={s}>
+                    <p class="chapter__label mono">{label}</p>
+                    <p class="chapter__body">{text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div class="chapter__foot">
+                <div class="chapter__meter" aria-hidden="true">
+                  <span data-m="0" /><span data-m="1" /><span data-m="2" />
+                </div>
+                {c.href && (
+                  <a class="chapter__link mono" href={c.href} target="_blank" rel="noopener">{c.hrefLabel}</a>
+                )}
+              </div>
+            </div>
+
+            <div class="chapter__visual">
+              <div class={`screen screen--${c.id}`}>
+                {c.id === "bancor" &&
+                  ["dia", "atardecer", "noche"].map((v) => (
+                    <img class="screen__img" data-view={v} src={`/work/bancor-${v}.webp`} alt="" width="1800" height="1013" loading="lazy" decoding="async" />
+                  ))}
+
+                {c.id === "clearlit" && (
+                  <>
+                    <img class="screen__img screen__img--top" src="/work/clearlit.webp" alt="" width="1600" height="900" loading="lazy" decoding="async" />
+                    <span class="scan" aria-hidden="true" />
+                    {traps.map((p, k) => (
+                      <span class="trap" style={`left:${p.x}%;top:${p.y}%;--k:${k}`} aria-hidden="true" />
+                    ))}
+                    <div class="saving mono" aria-hidden="true">
+                      <span class="saving__from">USD 800</span>
+                      <span class="saving__arrow">→</span>
+                      <span class="saving__to">USD 75</span>
+                      <span class="saving__unit">/ {lang === "es" ? "mes" : "mo"}</span>
+                    </div>
+                  </>
+                )}
+
+                {c.id === "comolocobro" && (
+                  <>
+                    <img class="screen__img screen__img--top screen__img--dim" src="/work/comolocobro.webp" alt="" width="1600" height="900" loading="lazy" decoding="async" />
+                    <div class="routes mono" aria-hidden="true">
+                      {routes.map((r, k) => (
+                        <div class:list={["route", { "route--best": r.best }]} style={`--w:${r.w}%;--k:${k}`}>
+                          <span class="route__label">{routeLabel} {String.fromCharCode(65 + k)}</span>
+                          <span class="route__bar"><span /></span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {c.id === "bitewave" && (
+                  <video class="screen__img" src="/work/bitewave-hud.mp4" poster="/work/bitewave-hud.webp" muted loop playsinline preload="none" data-video />
+                )}
+
+                <div class="hud mono" aria-hidden="true">
+                  <p class="hud__title"><span class="hud__dot" />{t.cases.hudTitle} / {c.id}</p>
+                  {c.hud.map((line, s) => (
+                    <p class="hud__line" data-h={s}>
+                      <span class="hud__mark" />
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    ))
+  }
 </section>
 
 <script>
   const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const chapters = document.querySelectorAll<HTMLElement>("[data-chapter]");
 
-  // ---------- Bancor: progreso de scroll → día, atardecer, noche ----------
-  const scrolly = document.querySelector<HTMLElement>("[data-scrolly]");
-  if (scrolly && motion) {
-    document.documentElement.classList.add("has-scrolly");
-    const imgs = scrolly.querySelectorAll<HTMLImageElement>("[data-view]");
-    imgs.forEach((i) => (i.loading = "eager"));
-    const steps = scrolly.querySelectorAll<HTMLElement>("[data-step]");
-    const meters = scrolly.querySelectorAll<HTMLElement>("[data-meter]");
+  // Videos: se reproducen solo cuando se ven.
+  const vio = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const v = e.target as HTMLVideoElement;
+      if (e.isIntersecting && motion) v.play().catch(() => {});
+      else v.pause();
+    }
+  });
+  document.querySelectorAll<HTMLVideoElement>("[data-video]").forEach((v) => {
+    v.preload = "auto";
+    vio.observe(v);
+  });
+
+  if (motion && chapters.length) {
+    document.documentElement.classList.add("has-chapters");
+    document.querySelectorAll<HTMLImageElement>(".chapter img").forEach((i) => (i.loading = "eager"));
     const smooth = (a: number, b: number, x: number) => {
       const k = Math.min(1, Math.max(0, (x - a) / (b - a)));
       return k * k * (3 - 2 * k);
@@ -178,15 +161,19 @@ const labels =
     let ticking = false;
     const update = () => {
       ticking = false;
-      const r = scrolly.getBoundingClientRect();
-      const total = r.height - innerHeight;
-      const p = Math.min(1, Math.max(0, -r.top / total));
-      scrolly.style.setProperty("--p", p.toFixed(4));
-      imgs[1].style.opacity = String(smooth(0.22, 0.42, p));
-      imgs[2].style.opacity = String(smooth(0.55, 0.75, p));
-      const idx = p < 0.36 ? 0 : p < 0.68 ? 1 : 2;
-      steps.forEach((s, i) => s.classList.toggle("is-active", i === idx));
-      meters.forEach((m, i) => m.classList.toggle("is-active", i === idx));
+      for (const ch of chapters) {
+        const r = ch.getBoundingClientRect();
+        if (r.bottom < -100 || r.top > innerHeight + 100) continue;
+        const total = r.height - innerHeight;
+        const p = Math.min(1, Math.max(0, -r.top / total));
+        ch.style.setProperty("--p", p.toFixed(4));
+        ch.dataset.step = String(p < 0.34 ? 0 : p < 0.67 ? 1 : 2);
+        if (ch.dataset.chapter === "bancor") {
+          const imgs = ch.querySelectorAll<HTMLImageElement>("[data-view]");
+          imgs[1].style.opacity = String(smooth(0.25, 0.45, p));
+          imgs[2].style.opacity = String(smooth(0.58, 0.78, p));
+        }
+      }
     };
     const onScroll = () => {
       if (!ticking) {
@@ -198,438 +185,544 @@ const labels =
     addEventListener("resize", onScroll);
     update();
   }
-
-  // ---------- Inclinación de las capturas con el puntero ----------
-  if (motion && matchMedia("(hover: hover)").matches) {
-    for (const el of document.querySelectorAll<HTMLElement>("[data-tilt]")) {
-      el.addEventListener("pointermove", (e) => {
-        const r = el.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        el.style.setProperty("--rx", `${(-y * 7).toFixed(2)}deg`);
-        el.style.setProperty("--ry", `${(x * 9).toFixed(2)}deg`);
-        el.style.setProperty("--mx", `${((x + 0.5) * 100).toFixed(1)}%`);
-        el.style.setProperty("--my", `${((y + 0.5) * 100).toFixed(1)}%`);
-      });
-      el.addEventListener("pointerleave", () => {
-        el.style.setProperty("--rx", "0deg");
-        el.style.setProperty("--ry", "0deg");
-      });
-    }
-  }
 </script>
 
 <style>
   .cases-sec {
-    padding-block: clamp(4rem, 10vh, 7rem) clamp(3rem, 8vh, 5rem);
+    padding-top: clamp(4rem, 10vh, 7rem);
     border-top: 1px solid var(--border);
   }
 
-  /* =========== scrolly Bancor =========== */
-  /* Sin JS o con movimiento reducido: bloque estático. */
-  .scrolly {
-    position: relative;
-    margin-top: clamp(2.5rem, 6vh, 4rem);
-  }
-  .scrolly__sticky {
-    position: relative;
-  }
-  .scrolly__media {
-    position: relative;
-    aspect-ratio: 1800 / 1013;
-    max-height: 80svh;
-    width: 100%;
-    overflow: hidden;
-    background: var(--void);
-  }
-  .scrolly__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .scrolly__img[data-view="dia"],
-  .scrolly__img[data-view="atardecer"] {
-    opacity: 0;
-  }
-  .scrolly__ui {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding-top: 1.5rem;
-  }
-  .scrolly__head {
+  .cases-index {
+    list-style: none;
+    padding: 0;
+    margin-top: 2rem;
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.4rem 1rem;
+    gap: 0.5rem;
   }
-  .scrolly__kind {
-    font-size: 0.8rem;
-    color: var(--gold);
-    flex-basis: 100%;
+  .cases-index a {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
   }
-  .scrolly__name {
+  .cases-index a:hover {
+    border-color: var(--gold);
+    background: rgba(226, 172, 85, 0.08);
+  }
+
+  /* =========== base estática (sin JS o con movimiento reducido) =========== */
+  .chapter {
+    position: relative;
+    padding-block: clamp(3rem, 8vh, 5rem);
+    border-bottom: 1px solid var(--border);
+  }
+  .chapter:last-of-type {
+    border-bottom: 0;
+  }
+
+  .chapter__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (min-width: 960px) {
+    .chapter__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(2rem, 4vw, 4rem);
+    }
+  }
+
+  .chapter__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .chapter__num {
+    font-size: 0.85rem;
+    color: var(--slate);
+    display: flex;
+    gap: 1.25rem;
+  }
+  .chapter__name {
     font-family: var(--mono);
     font-weight: 700;
-    font-size: clamp(2rem, 6vw, 4.4rem);
+    font-size: clamp(2.2rem, 4.6vw, 3.6rem);
     letter-spacing: -0.05em;
     line-height: 1;
     color: var(--ink);
   }
-  .scrolly__tags :global(.tag) {
-    background: rgba(6, 12, 23, 0.7);
-    color: #A9B5C4;
-  }
-  .scrolly__tags {
+  .chapter__tags {
     list-style: none;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
   }
-  .scrolly__story {
-    display: grid;
-    gap: 1.25rem;
+  .chapter__story {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 0.5rem;
   }
-  @media (min-width: 860px) {
-    .scrolly__story {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .scrolly__label {
+  .chapter__label {
     font-size: 0.82rem;
     color: var(--gold);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.3rem;
   }
-  .scrolly__text {
+  .chapter__body {
     color: var(--ink);
   }
-  .scrolly__meter {
+  .chapter__foot {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .chapter__meter {
     display: none;
   }
-
-  /* Con JS y movimiento: sección alta con escena fija. */
-  :global(.has-scrolly) .scrolly {
-    height: 340svh;
-  }
-  :global(.has-scrolly) .scrolly__sticky {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    overflow: hidden;
-  }
-  :global(.has-scrolly) .scrolly__media {
-    position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
-    max-height: none;
-  }
-  :global(.has-scrolly) .scrolly__img[data-view="dia"] {
-    opacity: 1;
-  }
-  :global(.has-scrolly) .scrolly__img {
-    transform: scale(calc(1.18 - var(--p, 0) * 0.18));
-    transform-origin: 55% 60%;
-    will-change: transform, opacity;
-  }
-  :global(.has-scrolly) .scrolly__media::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(to right, rgba(6, 12, 23, 0.82) 0%, rgba(6, 12, 23, 0.3) 45%, rgba(6, 12, 23, 0) 68%),
-      linear-gradient(to top, rgba(6, 12, 23, 0.85) 0%, rgba(6, 12, 23, 0) 40%);
-  }
-  :global(.has-scrolly) .scrolly__ui {
-    position: relative;
-    height: 100%;
-    justify-content: space-between;
-    padding-block: clamp(5.5rem, 14vh, 7rem) clamp(1.5rem, 5vh, 2.5rem);
-  }
-  :global(.has-scrolly) .scrolly__story {
-    display: block;
-    position: relative;
-    flex: 1;
-    max-width: 30rem;
-    margin-top: 2rem;
-  }
-  :global(.has-scrolly) .scrolly__step {
-    position: absolute;
-    inset: 0 0 auto 0;
-    opacity: 0;
-    transform: translateY(24px);
-    transition:
-      opacity 0.6s var(--ease-out),
-      transform 0.6s var(--ease-out);
-    pointer-events: none;
-  }
-  :global(.has-scrolly) .scrolly__step.is-active {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-  :global(.has-scrolly) .scrolly__text {
-    font-size: clamp(1.15rem, 2.4vw, 1.6rem);
-    line-height: 1.45;
-  }
-  :global(.has-scrolly) .scrolly__meter {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem 1.25rem;
-    font-size: 0.8rem;
-    color: var(--slate);
-  }
-  .scrolly__meter [data-meter] {
-    position: relative;
-    padding-top: 0.6rem;
-    transition: color 0.3s ease;
-  }
-  .scrolly__meter [data-meter]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3.5rem;
-    height: 2px;
-    background: var(--border);
-    transition: background-color 0.3s ease;
-  }
-  .scrolly__meter [data-meter].is-active {
-    color: var(--ink);
-  }
-  .scrolly__meter [data-meter].is-active::before {
-    background: var(--gold);
-    box-shadow: 0 0 12px rgba(226, 172, 85, 0.7);
-  }
-  .scrolly__caption {
-    margin-left: auto;
-  }
-  @media (max-width: 640px) {
-    .scrolly__caption {
-      display: none;
-    }
-  }
-
-  /* =========== otros casos =========== */
-  .case__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.4rem 0.9rem;
-  }
-  .case__name {
-    font-family: var(--mono);
-    font-size: clamp(1.6rem, 3.6vw, 2.4rem);
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.04em;
-  }
-  .case__kind {
-    font-size: 0.8rem;
-    color: var(--slate);
-  }
-  .case__num {
-    font-size: 0.8rem;
-    color: var(--gold);
-  }
-  .case__tags {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .case__link {
-    display: inline-block;
-    align-self: flex-start;
-    margin-top: 0.6rem;
+  .chapter__link {
     font-size: 0.88rem;
     color: var(--gold);
     border-bottom: 1px solid currentColor;
     padding-bottom: 1px;
   }
-  .case__link:hover {
+  .chapter__link:hover {
     color: var(--ink);
   }
 
-  .cases {
-    list-style: none;
-    padding: 0;
-    margin-top: clamp(3rem, 8vh, 5rem);
-    display: flex;
-    flex-direction: column;
-    gap: clamp(3rem, 9vh, 6rem);
-  }
-
-  .case {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.75rem;
-  }
-  @media (min-width: 860px) {
-    .case {
-      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      gap: clamp(2rem, 5vw, 4rem);
-      align-items: center;
-    }
-    .case--flip .case__media {
-      order: 2;
-    }
-  }
-
-  .case__media {
-    perspective: 1200px;
-  }
-  .case__frame {
+  /* ---------- pantalla ---------- */
+  .screen {
     position: relative;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
     aspect-ratio: 16 / 9;
-    background: var(--panel);
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-    transition: transform 0.5s var(--ease-out), border-color 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--void);
+    box-shadow: 0 40px 120px -40px rgba(226, 172, 85, 0.25);
   }
-  .case__media:hover .case__frame {
-    border-color: rgba(226, 172, 85, 0.5);
-    box-shadow: 0 30px 80px -30px rgba(226, 172, 85, 0.35);
-  }
-  .case__frame::after {
-    content: "";
+  .screen__img {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 230, 180, 0.14), transparent 45%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-  .case__media:hover .case__frame::after {
-    opacity: 1;
-  }
-  .case__frame img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  .screen__img--top {
     object-position: top;
   }
+  .screen__img--dim {
+    filter: brightness(0.55) saturate(0.8);
+  }
+  .screen--bancor .screen__img[data-view="dia"],
+  .screen--bancor .screen__img[data-view="atardecer"] {
+    opacity: 0;
+  }
 
-  .case__body {
+  .hud {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    max-width: min(88%, 22rem);
+    padding: 0.7rem 0.85rem;
+    background: rgba(6, 12, 23, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.72rem;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.3rem;
   }
-  .case__problem {
-    color: var(--ink);
-    font-size: 1.1rem;
-  }
-  .case__ai,
-  .case__result {
+  .hud__title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
     color: var(--slate);
+    margin-bottom: 0.15rem;
+  }
+  .hud__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(226, 172, 85, 0.9);
+  }
+  .hud__line {
+    display: flex;
+    gap: 0.5rem;
+    color: var(--ink);
+  }
+  .hud__mark {
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-top: 0.3em;
+    border: 1px solid var(--gold);
+    background: var(--gold);
   }
 
-  /* Revelado al entrar: la captura se abre como una cortina. */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .case .case__frame {
-      clip-path: inset(0 100% 0 0 round 8px);
-      transition:
-        clip-path 1.1s var(--ease-out),
-        transform 0.5s var(--ease-out),
-        border-color 0.3s ease,
-        box-shadow 0.3s ease;
-    }
-    :global(.js) .case--flip .case__frame {
-      clip-path: inset(0 0 0 100% round 8px);
-    }
-    :global(.js) .case.is-in .case__frame {
-      clip-path: inset(0 0 0 0 round 8px);
-    }
-    :global(.js) .case .case__body {
-      opacity: 0;
-      transform: translateY(20px);
-      transition:
-        opacity 0.9s var(--ease-out) 0.25s,
-        transform 0.9s var(--ease-out) 0.25s;
-    }
-    :global(.js) .case.is-in .case__body {
-      opacity: 1;
-      transform: none;
-    }
-
-    /* Bitewave: la señal se dibuja y las notas aparecen. */
-    :global(.js) .case .signal__wave {
-      stroke-dasharray: 1;
-      stroke-dashoffset: 1;
-      transition: stroke-dashoffset 2.4s var(--ease-out) 0.5s;
-    }
-    :global(.js) .case.is-in .signal__wave {
-      stroke-dashoffset: 0;
-    }
-    :global(.js) .case .signal__note,
-    :global(.js) .case .signal__event {
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      transition-delay: calc(0.9s + var(--d) * 0.42s);
-    }
-    :global(.js) .case.is-in .signal__note,
-    :global(.js) .case.is-in .signal__event {
-      opacity: 1;
-    }
+  /* clearlit */
+  .scan,
+  .trap {
+    display: none;
+  }
+  .saving {
+    position: absolute;
+    right: 0.9rem;
+    top: 0.9rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.55rem 0.8rem;
+    background: rgba(6, 12, 23, 0.86);
+    border: 1px solid rgba(226, 172, 85, 0.5);
+    border-radius: 6px;
+    font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+    color: var(--ink);
+  }
+  .saving__from {
+    color: var(--slate);
+    text-decoration: line-through;
+  }
+  .saving__arrow,
+  .saving__to {
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .saving__unit {
+    color: var(--slate);
+    font-size: 0.8em;
   }
 
-  /* ---------- visual bitewave ---------- */
-  .signal {
-    width: 100%;
-    height: 100%;
+  /* comolocobro */
+  .routes {
+    position: absolute;
+    right: 0.9rem;
+    top: 0.9rem;
+    width: min(62%, 22rem);
+    padding: 0.8rem 0.9rem;
+    background: rgba(6, 12, 23, 0.86);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    font-size: 0.72rem;
+  }
+  .route {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--slate);
+    transition:
+      color 0.4s ease,
+      opacity 0.4s ease;
+  }
+  .route__bar {
+    height: 0.55rem;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .route__bar span {
     display: block;
+    height: 100%;
+    width: var(--w);
+    background: var(--slate);
   }
-  .signal__wave {
-    fill: none;
-    stroke: var(--ink);
-    stroke-width: 1.5;
-    stroke-linejoin: round;
+  .route--best {
+    color: var(--gold);
   }
-  .signal__event {
-    stroke: var(--gold);
-    stroke-width: 1;
-    stroke-dasharray: 3 4;
+  .route--best .route__bar span {
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(226, 172, 85, 0.8);
   }
-  .signal__grid {
-    stroke: var(--border);
-    stroke-width: 1;
+
+  /* =========== capítulos con scroll (JS + movimiento) =========== */
+  :global(.has-chapters) .chapter {
+    height: 270svh;
+    padding: 0;
+    border: 0;
   }
-  .signal__note {
-    fill: var(--gold);
+  :global(.has-chapters) .chapter__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-block: 5rem 2rem;
+    overflow: hidden;
   }
-  .signal__playhead {
-    stroke: var(--gold);
-    stroke-width: 2;
-    opacity: 0;
-    filter: drop-shadow(0 0 6px rgba(226, 172, 85, 0.9));
+  :global(.has-chapters) .chapter__grid {
+    width: 100%;
   }
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .case.is-in .signal__playhead {
-      opacity: 1;
-      animation: sweep 5.5s linear 3.2s infinite both;
+  /* El texto queda alineado con el resto del sitio; la pantalla se sale hacia la derecha. */
+  @media (min-width: 960px) {
+    :global(.has-chapters) .chapter__grid {
+      grid-template-columns: minmax(0, 4.4fr) minmax(0, 7.6fr);
+    }
+    :global(.has-chapters) .chapter__visual {
+      margin-right: calc(-1 * max(0px, (100vw - var(--maxw)) / 2 - 1.5rem));
     }
   }
-  @keyframes sweep {
+  :global(.has-chapters) .screen--bancor .screen__img[data-view="dia"] {
+    opacity: 1;
+  }
+  .chapter__bignum {
+    display: none;
+  }
+  :global(.has-chapters) .chapter__bignum {
+    display: block;
+    position: absolute;
+    right: -2vw;
+    top: 50%;
+    font-weight: 700;
+    font-size: clamp(16rem, 42vw, 40rem);
+    line-height: 0.8;
+    letter-spacing: -0.08em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(226, 172, 85, 0.13);
+    transform: translateY(calc(-50% + (0.5 - var(--p, 0)) * 30vh));
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Los tres pasos ocupan la misma celda: la altura la fija el más largo. */
+  :global(.has-chapters) .chapter__story {
+    display: grid;
+    gap: 0;
+  }
+  :global(.has-chapters) .chapter__step {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.55s var(--ease-out),
+      transform 0.55s var(--ease-out);
+  }
+  :global(.has-chapters) .chapter__body {
+    font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+    line-height: 1.5;
+  }
+  :global(.has-chapters) .chapter[data-step="0"] .chapter__step[data-s="0"],
+  :global(.has-chapters) .chapter[data-step="1"] .chapter__step[data-s="1"],
+  :global(.has-chapters) .chapter[data-step="2"] .chapter__step[data-s="2"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  :global(.has-chapters) .chapter__meter {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .chapter__meter span {
+    width: 2.6rem;
+    height: 2px;
+    background: var(--border);
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .chapter[data-step="0"] .chapter__meter [data-m="0"],
+  .chapter[data-step="1"] .chapter__meter :is([data-m="0"], [data-m="1"]),
+  .chapter[data-step="2"] .chapter__meter span {
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(226, 172, 85, 0.7);
+  }
+
+  /* La pantalla entra girando y se endereza con el scroll. */
+  :global(.has-chapters) .chapter__visual {
+    perspective: 1400px;
+  }
+  :global(.has-chapters) .screen {
+    transform: rotateY(calc((0.12 - min(var(--p, 0), 0.12)) * -110deg)) scale(calc(0.94 + min(var(--p, 0), 0.12) * 0.5));
+    transform-origin: 30% 50%;
+    will-change: transform;
+  }
+  :global(.has-chapters) .screen__img[data-view] {
+    transform: scale(calc(1.14 - var(--p, 0) * 0.14));
+  }
+
+  /* HUD: las líneas se encienden por paso. */
+  :global(.has-chapters) .hud__line {
+    color: var(--slate);
+    transition: color 0.3s ease;
+  }
+  :global(.has-chapters) .hud__mark {
+    background: transparent;
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"],
+  :global(.has-chapters) .chapter[data-step="1"] .hud__line:is([data-h="0"], [data-h="1"]),
+  :global(.has-chapters) .chapter[data-step="2"] .hud__line {
+    color: var(--ink);
+  }
+  :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"] .hud__mark,
+  :global(.has-chapters) .chapter[data-step="1"] .hud__line:is([data-h="0"], [data-h="1"]) .hud__mark,
+  :global(.has-chapters) .chapter[data-step="2"] .hud__line .hud__mark {
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(226, 172, 85, 0.8);
+  }
+
+  /* clearlit: escaneo, trampas y ahorro */
+  :global(.has-chapters) .scan {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    top: calc(min(var(--p, 0) * 1.6, 1) * 100%);
+    background: var(--gold);
+    box-shadow: 0 0 18px 4px rgba(226, 172, 85, 0.55);
+    transition: opacity 0.4s ease;
+  }
+  :global(.has-chapters) .chapter[data-step="2"] .scan {
+    opacity: 0;
+  }
+  :global(.has-chapters) .trap {
+    display: block;
+    position: absolute;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: -0.55rem 0 0 -0.55rem;
+    border-radius: 50%;
+    background: #E5574A;
+    transform: scale(0);
+    transition: transform 0.45s var(--ease-out);
+    transition-delay: calc(var(--k) * 0.18s);
+  }
+  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .trap {
+    transform: scale(1);
+    animation: ping 1.6s ease-out infinite;
+  }
+  @keyframes ping {
     from {
-      transform: translateX(0);
+      box-shadow: 0 0 0 0 rgba(229, 87, 74, 0.6);
     }
     to {
-      transform: translateX(800px);
+      box-shadow: 0 0 0 18px rgba(229, 87, 74, 0);
     }
   }
-  .signal__label {
-    font-family: var(--mono);
-    font-size: 15px;
-    fill: var(--slate);
+  :global(.has-chapters) .saving {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
   }
-  .signal__label--gold {
-    fill: var(--gold);
+  :global(.has-chapters) .chapter[data-step="2"] .saving {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* comolocobro: las barras crecen y gana una ruta */
+  :global(.has-chapters) .routes {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .routes {
+    opacity: 1;
+  }
+  :global(.has-chapters) .route__bar span {
+    width: 0;
+    transition:
+      width 0.9s var(--ease-out),
+      background-color 0.4s ease;
+    transition-delay: calc(var(--k) * 0.12s);
+  }
+  :global(.has-chapters) .chapter:is([data-step="1"], [data-step="2"]) .route__bar span {
+    width: var(--w);
+  }
+  :global(.has-chapters) .route--best {
+    color: var(--slate);
+  }
+  :global(.has-chapters) .route--best .route__bar span {
+    background: var(--slate);
+    box-shadow: none;
+  }
+  :global(.has-chapters) .chapter[data-step="2"] .route--best {
+    color: var(--gold);
+  }
+  :global(.has-chapters) .chapter[data-step="2"] .route--best .route__bar span {
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(226, 172, 85, 0.8);
+  }
+  :global(.has-chapters) .chapter[data-step="2"] .route:not(.route--best) {
+    opacity: 0.45;
+  }
+
+  /* Mobile: visual arriba, texto abajo, todo dentro de la pantalla fija. */
+  @media (max-width: 959px) {
+    :global(.has-chapters) .chapter__stage {
+      align-items: flex-start;
+      padding-block: 4.5rem 1.25rem;
+    }
+    :global(.has-chapters) .chapter__grid {
+      gap: 1.1rem;
+    }
+    :global(.has-chapters) .chapter__visual {
+      order: -1;
+    }
+    :global(.has-chapters) .chapter__text {
+      gap: 0.6rem;
+    }
+    :global(.has-chapters) .chapter__name {
+      font-size: 2rem;
+    }
+    :global(.has-chapters) .chapter__tags {
+      display: none;
+    }
+    :global(.has-chapters) .chapter__body {
+      font-size: 0.98rem;
+    }
+    :global(.has-chapters) .screen:not(.screen--bitewave) {
+      aspect-ratio: 4 / 3;
+    }
+    :global(.has-chapters) .chapter__bignum {
+      top: auto;
+      bottom: 0;
+      right: -4vw;
+      font-size: 60vw;
+      transform: none;
+    }
+    /* En el celular el registro muestra solo el paso actual. */
+    :global(.has-chapters) .hud__title {
+      display: none;
+    }
+    :global(.has-chapters) .hud__line {
+      display: none;
+    }
+    :global(.has-chapters) .chapter[data-step="0"] .hud__line[data-h="0"],
+    :global(.has-chapters) .chapter[data-step="1"] .hud__line[data-h="1"],
+    :global(.has-chapters) .chapter[data-step="2"] .hud__line[data-h="2"] {
+      display: flex;
+    }
+    .hud {
+      font-size: 0.6rem;
+      left: 0.5rem;
+      bottom: 0.5rem;
+      padding: 0.45rem 0.55rem;
+    }
+    .routes,
+    .saving {
+      right: 0.5rem;
+      top: 0.5rem;
+    }
+    .route {
+      grid-template-columns: 4.2rem 1fr;
+    }
   }
 </style>
