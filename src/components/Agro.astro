@@ -35,6 +35,19 @@ const sig = (kind: string) => {
     <Words text={a.heading} class="section__title" id="agro-title" />
     <p class="section__intro agro__intro">{a.intro}</p>
 
+    <div class="cmp" data-reveal>
+      <div class="cmp__col cmp__col--old">
+        <p class="cmp__label mono">{a.compare.oldLabel}</p>
+        <p class="cmp__text">{a.compare.oldText}</p>
+      </div>
+      <span class="cmp__arrow mono" aria-hidden="true">→</span>
+      <div class="cmp__col cmp__col--new">
+        <p class="cmp__label mono">{a.compare.newLabel}</p>
+        <p class="cmp__text">{a.compare.newText}</p>
+      </div>
+      <p class="cmp__note">{a.compare.note}</p>
+    </div>
+
     <ul class="agro__list" role="list" data-reveal>
       {
         a.items.map((it, i) => (
@@ -81,6 +94,78 @@ const sig = (kind: string) => {
   }
   .agro__intro {
     max-width: 60ch;
+  }
+
+  /* Sensor tradicional vs. dispositivo que interpreta */
+  .cmp {
+    margin-top: clamp(2rem, 5vh, 3rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+  @media (min-width: 860px) {
+    .cmp {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  .cmp__col {
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(16, 29, 48, 0.6);
+  }
+  .cmp__col--new {
+    border-color: rgba(226, 172, 85, 0.6);
+    background: rgba(226, 172, 85, 0.06);
+    box-shadow: 0 30px 90px -40px rgba(226, 172, 85, 0.45);
+  }
+  .cmp__label {
+    font-size: 0.8rem;
+    color: var(--slate);
+    margin-bottom: 0.6rem;
+  }
+  .cmp__col--new .cmp__label {
+    color: var(--gold);
+  }
+  .cmp__text {
+    font-family: var(--mono);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    color: var(--slate);
+  }
+  .cmp__col--new .cmp__text {
+    color: var(--ink);
+  }
+  .cmp__arrow {
+    align-self: center;
+    justify-self: center;
+    font-size: 1.6rem;
+    color: var(--gold);
+  }
+  .cmp__note {
+    grid-column: 1 / -1;
+    color: #a9b5c4;
+  }
+  @media (max-width: 859px) {
+    .cmp__arrow {
+      transform: rotate(90deg);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .cmp__col--new {
+      opacity: 0;
+      transform: translateX(-16px);
+      transition:
+        opacity 0.8s var(--ease-out) 0.3s,
+        transform 0.8s var(--ease-out) 0.3s;
+    }
+    :global(.js) .cmp.is-in .cmp__col--new {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   .agro__list {
