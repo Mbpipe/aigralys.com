@@ -7,6 +7,7 @@
   - clearlit (`cost-agent`): árbol de archivos escaneado, curva de costo hoy vs. con arreglos, 3 hallazgos y el arreglo tipeándose.
   - comolocobro (`payout-agent`): USD 2.000 fluyendo por 4 rutas de cobro, netos que cuentan, dólar en vivo, gana la mejor ruta.
   - Bitewave (`bitewave-pipeline`): loop de 14 s con señal en vivo, foto del río con anillos y notas en la punta, clasificador tinyML y partitura (pez / vos / banda).
+- Sección "La misma base, en el campo" (`src/components/Agro.astro`): 10 aplicaciones IoT + IA local para el agro derivadas de Bitewave.
 - Fuentes autoalojadas con @fontsource (sin Google Fonts).
 - OG image nueva con el claim actual, apple-touch-icon, JSON-LD de Organization.
 - Contacto con panel y fondo de puntos; números de "Cómo trabajamos" en contorno.
