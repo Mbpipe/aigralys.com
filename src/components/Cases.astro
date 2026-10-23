@@ -1,0 +1,368 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+const [bancor, ...rest] = t.cases.items;
+const views = ["noche", "atardecer", "dia"] as const;
+
+// Visual de Bitewave: señal de vibración → eventos → notas MIDI (determinístico).
+const W = 800;
+const H = 450;
+let seed = 7;
+const rand = () => {
+  seed = (seed * 16807) % 2147483647;
+  return (seed - 1) / 2147483646;
+};
+const bursts = [140, 330, 470, 640];
+const mid = 130;
+const pts: string[] = [];
+for (let x = 0; x <= W; x += 4) {
+  let amp = 6 + rand() * 6;
+  for (const b of bursts) {
+    const d = Math.abs(x - b);
+    if (d < 40) amp += (1 - d / 40) * 85;
+  }
+  const y = mid + Math.sin(x * 0.55) * amp * (0.6 + rand() * 0.4);
+  pts.push(`${x},${y.toFixed(1)}`);
+}
+const wave = pts.join(" ");
+const rows = 8;
+const rollTop = 270;
+const rowH = 18;
+const notes = bursts.flatMap((b, i) => [
+  { x: b - 10, w: 70 + i * 8, r: (i * 3) % rows },
+  { x: b + 20, w: 44, r: (i * 3 + 2) % rows },
+  { x: b + 60, w: 28, r: (i * 3 + 5) % rows },
+]);
+const labels =
+  lang === "es"
+    ? { wave: "vibración", events: "eventos", midi: "notas midi" }
+    : { wave: "vibration", events: "events", midi: "midi notes" };
+---
+
+<section class="section" id="casos" aria-labelledby="casos-title">
+  <div class="container">
+    <h2 class="section__title" id="casos-title">{t.cases.heading}</h2>
+    <p class="section__intro">{t.cases.intro}</p>
+
+    <!-- Caso destacado -->
+    <article class="feature" aria-labelledby="case-bancor">
+      <div class="feature__media" data-viewer>
+        {
+          views.map((v, i) => (
+            <img
+              class="feature__img"
+              data-view={v}
+              src={`/work/bancor-${v}.webp`}
+              alt={`Bancor Arena, render ${t.cases.views[v]}`}
+              width="1800"
+              height="1013"
+              loading="lazy"
+              decoding="async"
+              hidden={i !== 0}
+            />
+          ))
+        }
+        <div class="feature__views mono" role="group" aria-label={t.cases.viewsLabel}>
+          {
+            views.map((v, i) => (
+              <button type="button" class="feature__view" data-target={v} aria-pressed={i === 0 ? "true" : "false"}>
+                {t.cases.views[v]}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="case__head">
+        <h3 class="case__name" id="case-bancor">{bancor.name}</h3>
+        <span class="case__kind mono">{bancor.kind}</span>
+        <ul class="case__tags" role="list">{bancor.tags.map((g) => <li class="tag">{g}</li>)}</ul>
+      </div>
+
+      <dl class="feature__story">
+        <div><dt>{t.cases.labels.problem}</dt><dd>{bancor.problem}</dd></div>
+        <div><dt>{t.cases.labels.ai}</dt><dd>{bancor.ai}</dd></div>
+        <div>
+          <dt>{t.cases.labels.result}</dt><dd>{bancor.result}</dd>
+          {bancor.href && (
+            <a class="case__link mono" href={bancor.href} target="_blank" rel="noopener">{bancor.hrefLabel}</a>
+          )}
+        </div>
+      </dl>
+    </article>
+
+    <!-- Resto de los casos -->
+    <ul class="cases" role="list">
+      {
+        rest.map((c) => (
+          <li>
+            <article class="case" aria-labelledby={`case-${c.id}`}>
+              <div class="case__media">
+                {c.shot ? (
+                  <img src={c.shot} alt={`${c.name}`} loading="lazy" decoding="async" />
+                ) : (
+                  <svg class="signal" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${c.name}: ${labels.wave}, ${labels.events}, ${labels.midi}`}>
+                    <text class="signal__label" x="24" y="34">{labels.wave}</text>
+                    <polyline class="signal__wave" points={wave} />
+                    {bursts.map((b) => (
+                      <line class="signal__event" x1={b} x2={b} y1="30" y2={rollTop + rows * rowH} />
+                    ))}
+                    <text class="signal__label" x="24" y={rollTop - 14}>{labels.midi}</text>
+                    {Array.from({ length: rows + 1 }, (_, r) => (
+                      <line class="signal__grid" x1="0" x2={W} y1={rollTop + r * rowH} y2={rollTop + r * rowH} />
+                    ))}
+                    {notes.map((n) => (
+                      <rect class="signal__note" x={n.x} y={rollTop + n.r * rowH + 3} width={n.w} height={rowH - 6} rx="2" />
+                    ))}
+                    <text class="signal__label signal__label--gold" x={bursts[0] + 8} y="58">{labels.events}</text>
+                  </svg>
+                )}
+              </div>
+              <div class="case__body">
+                <div class="case__head">
+                  <h3 class="case__name" id={`case-${c.id}`}>{c.name}</h3>
+                  <span class="case__kind mono">{c.kind}</span>
+                </div>
+                <p class="case__problem">{c.problem}</p>
+                <p class="case__ai">{c.ai}</p>
+                <p class="case__result">{c.result}</p>
+                <ul class="case__tags" role="list">{c.tags.map((g) => <li class="tag">{g}</li>)}</ul>
+                {c.href && (
+                  <a class="case__link mono" href={c.href} target="_blank" rel="noopener">{c.hrefLabel}</a>
+                )}
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  for (const viewer of document.querySelectorAll<HTMLElement>("[data-viewer]")) {
+    const imgs = viewer.querySelectorAll<HTMLImageElement>("[data-view]");
+    const buttons = viewer.querySelectorAll<HTMLButtonElement>("[data-target]");
+    for (const btn of buttons) {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        imgs.forEach((img) => (img.hidden = img.dataset.view !== target));
+        buttons.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      });
+    }
+  }
+</script>
+
+<style>
+  /* ---------- destacado ---------- */
+  .feature {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .feature__media {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 1800 / 1013;
+    background: var(--panel);
+  }
+  .feature__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .feature__views {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    display: flex;
+    gap: 0;
+    background: var(--navy);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .feature__view {
+    font: inherit;
+    font-size: 0.78rem;
+    color: var(--slate);
+    background: transparent;
+    border: 0;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+  }
+  .feature__view + .feature__view {
+    border-left: 1px solid var(--border);
+  }
+  .feature__view:hover {
+    color: var(--ink);
+  }
+  .feature__view[aria-pressed="true"] {
+    color: var(--navy);
+    background: var(--gold);
+  }
+
+  .feature__story {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+  @media (min-width: 860px) {
+    .feature__story {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+  }
+  .feature__story dt {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--gold);
+    margin-bottom: 0.35rem;
+  }
+  .feature__story dd {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  /* ---------- casos ---------- */
+  .case__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.9rem;
+  }
+  .case__name {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .case__kind {
+    font-size: 0.8rem;
+    color: var(--slate);
+  }
+  .case__tags {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .feature .case__tags {
+    flex-basis: 100%;
+  }
+  @media (min-width: 860px) {
+    .feature .case__tags {
+      flex-basis: auto;
+      margin-left: auto;
+    }
+  }
+
+  .case__link {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: 0.6rem;
+    font-size: 0.88rem;
+    color: var(--gold);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+  .case__link:hover {
+    color: var(--ink);
+  }
+
+  .cases {
+    list-style: none;
+    padding: 0;
+    margin-top: clamp(3rem, 8vh, 4.5rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .case {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-block: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  @media (min-width: 860px) {
+    .case {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: clamp(2rem, 5vw, 3.5rem);
+      align-items: start;
+    }
+  }
+
+  .case__media {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--panel);
+  }
+  .case__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .case__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: var(--measure);
+  }
+  .case__problem {
+    color: var(--ink);
+  }
+  .case__ai,
+  .case__result {
+    color: var(--slate);
+  }
+
+  /* ---------- visual bitewave ---------- */
+  .signal {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .signal__wave {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .signal__event {
+    stroke: var(--gold);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+  }
+  .signal__grid {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .signal__note {
+    fill: var(--gold);
+  }
+  .signal__label {
+    font-family: var(--mono);
+    font-size: 15px;
+    fill: var(--slate);
+  }
+  .signal__label--gold {
+    fill: var(--gold);
+  }
+</style>
