@@ -32,9 +32,9 @@ type Case = {
   problem: string;
   ai: string;
   result: string;
+  hud: string[];
   href?: string;
   hrefLabel?: string;
-  shot?: string;
 };
 
 type Strings = {
@@ -59,9 +59,6 @@ type Strings = {
     heading: string;
     intro: string;
     labels: { problem: string; ai: string; result: string };
-    views: { dia: string; atardecer: string; noche: string };
-    viewsLabel: string;
-    caption: string;
     items: Case[];
   };
   process: { heading: string; steps: { title: string; body: string }[] };
@@ -118,20 +115,18 @@ export const strings: Record<Lang, Strings> = {
     },
     cases: {
       heading: "Casos",
-      intro: "Proyectos para clientes y productos propios. Cada uno pone la IA a trabajar de una forma distinta.",
+      intro: "Cuatro proyectos, cuatro formas de poner IA a trabajar: agentes creativos, análisis automático, motores de decisión y sensores que entienden lo que pasa.",
       labels: { problem: "El problema", ai: "Qué hace la IA", result: "Resultado" },
-      views: { dia: "día", atardecer: "atardecer", noche: "noche" },
-      viewsLabel: "Ver render",
-      caption: "Renders producidos por un agente de IA conectado a Blender.",
       items: [
         {
           id: "bancor",
           name: "Bancor Arena",
           kind: "cliente",
-          tags: ["agentes creativos", "3D", "sitio de venta"],
-          problem: "Una constructora sustentable con un producto nuevo, una tribuna modular sobre contenedor marítimo, y ninguna imagen para venderlo.",
-          ai: "Conectamos un agente de IA a Blender por MCP. El agente arma la escena, ajusta luces y cámaras y produce los renders de día, atardecer y noche, más el modelo 3D interactivo del sitio.",
+          tags: ["agentes creativos", "3D", "MCP"],
+          problem: "Un producto nuevo, una tribuna modular sobre contenedor marítimo, y ninguna imagen para salir a venderlo.",
+          ai: "Conectamos un agente de IA a Blender por MCP. El agente arma la escena, ajusta luces y cámaras y produce renders de día, atardecer y noche, más el modelo 3D interactivo del sitio.",
           result: "Sitio de venta con visor 3D y consultas separadas por segmento, sin una sola sesión de fotos.",
+          hud: ["brief: tribuna, vista nocturna, LEDs", "Blender vía MCP: escena, luces, cámara", "render 3840 × 2160 entregado"],
           href: "https://bancor-arena.pages.dev",
           hrefLabel: "bancor-arena.pages.dev",
         },
@@ -140,33 +135,34 @@ export const strings: Record<Lang, Strings> = {
           name: "clearlit",
           kind: "producto propio",
           tags: ["análisis con IA", "SaaS"],
-          problem: "Las apps hechas con Lovable, Bolt o v0 esconden costos que aparecen recién cuando crecen.",
-          ai: "Un análisis automático lee la app, detecta las trampas de costo y propone el arreglo de cada una.",
-          result: "En producción e indexado en Google, con un chequeo gratuito como puerta de entrada.",
+          problem: "Las apps hechas con Lovable, Bolt o v0 funcionan, pero esconden costos que explotan cuando crecen.",
+          ai: "Un análisis automático lee el stack de la app, detecta cada trampa de costo y escribe el arreglo listo para pegárselo al asistente que la construyó.",
+          result: "Una app con 25 mil usuarios pasó de unos USD 800 a USD 75 por mes con un solo arreglo. Chequeo gratis, reporte completo pago.",
+          hud: ["leyendo el stack de la app", "3 trampas de costo detectadas", "≈ USD 800 → 75 por mes"],
           href: "https://clearlit.app",
           hrefLabel: "clearlit.app",
-          shot: "/shots/clearlit.png",
         },
         {
           id: "comolocobro",
           name: "comolocobro",
           kind: "producto propio",
-          tags: ["motor de recomendación", "contenido con agentes"],
-          problem: "Cobrar desde el exterior en Argentina es un laberinto de plataformas, comisiones e impuestos.",
-          ai: "Un motor compara rutas de cobro y calcula cuánto te queda en mano. Lo mantiene un flujo de agentes que actualiza contenido y escalas cuando cambia la normativa.",
-          result: "En producción, con tráfico orgánico y respuestas al día.",
+          tags: ["motor de decisión", "agentes de contenido"],
+          problem: "Te pagan en dólares desde afuera y no sabés cuánto te queda en el bolsillo ni por dónde conviene cobrarlo.",
+          ai: "Un motor cruza el método de cobro, tu situación fiscal y el dólar en vivo, y calcula el neto real. Un flujo de agentes mantiene al día escalas, guías y contenido.",
+          result: "En producción, con tráfico orgánico de gente que busca exactamente esa respuesta.",
+          hud: ["USD 2.000 por mes, monotributo", "comparando métodos con el dólar en vivo", "mejor ruta para tu caso"],
           href: "https://comolocobro.com",
           hrefLabel: "comolocobro.com",
-          shot: "/shots/comolocobro.png",
         },
         {
           id: "bitewave",
           name: "Bitewave",
-          kind: "I+D",
-          tags: ["IoT", "tinyML", "datos a contenido"],
-          problem: "Hay señales físicas que nadie está leyendo: vibraciones, golpes, movimiento.",
-          ai: "Un sensor Seeed Studio captura la vibración, un pipeline la limpia y la convierte en eventos, y un modelo tinyML en el propio dispositivo puede clasificarlos sin conexión. Primer uso: la vibración de una caña de pesca convertida en música y overlays para video.",
-          result: "La misma base sirve para mantenimiento predictivo de motores y bombas, monitoreo de maquinaria agrícola o cualquier lugar donde una vibración cuenta algo.",
+          kind: "I+D propio",
+          tags: ["IoT", "tinyML", "video generativo"],
+          problem: "Los sensores de pesca avisan que algo picó, pero no cuentan nada. Y la señal cruda de una caña es puro ruido: viento, olas, lances.",
+          ai: "Un sensor Seeed Studio lee la caña 200 veces por segundo. Un modelo separa lance, recogida, ataque y pelea, y un pipeline generativo convierte cada evento en música y en el video con overlay, armado por código.",
+          result: "Cada pique se vuelve un tema y un video listo para publicar. La misma base, con tinyML en el dispositivo, sirve para mantenimiento predictivo, maquinaria agrícola o cualquier lugar donde una vibración cuenta algo.",
+          hud: ["200 lecturas por segundo", "fases: lance, recogida, ataque, pelea", "pique → MIDI → banda → video"],
         },
       ],
     },
@@ -235,20 +231,18 @@ export const strings: Record<Lang, Strings> = {
     },
     cases: {
       heading: "Work",
-      intro: "Client projects and our own products. Each one puts AI to work in a different way.",
+      intro: "Four projects, four ways to put AI to work: creative agents, automated analysis, decision engines and sensors that understand what's happening.",
       labels: { problem: "The problem", ai: "What the AI does", result: "Outcome" },
-      views: { dia: "day", atardecer: "sunset", noche: "night" },
-      viewsLabel: "View render",
-      caption: "Renders produced by an AI agent connected to Blender.",
       items: [
         {
           id: "bancor",
           name: "Bancor Arena",
           kind: "client",
-          tags: ["creative agents", "3D", "sales site"],
-          problem: "A sustainable builder with a new product, a modular grandstand on a shipping container, and no images to sell it with.",
-          ai: "We connected an AI agent to Blender over MCP. The agent sets up the scene, tunes lights and cameras and produces the day, sunset and night renders, plus the interactive 3D model on the site.",
+          tags: ["creative agents", "3D", "MCP"],
+          problem: "A new product, a modular grandstand on a shipping container, and no images to go out and sell it.",
+          ai: "We connected an AI agent to Blender over MCP. The agent sets up the scene, tunes lights and cameras and produces day, sunset and night renders, plus the interactive 3D model on the site.",
           result: "A sales site with a 3D viewer and inquiries split by segment, without a single photo shoot.",
+          hud: ["brief: grandstand, night view, LEDs", "Blender over MCP: scene, lights, camera", "3840 × 2160 render delivered"],
           href: "https://bancor-arena.pages.dev",
           hrefLabel: "bancor-arena.pages.dev",
         },
@@ -257,33 +251,34 @@ export const strings: Record<Lang, Strings> = {
           name: "clearlit",
           kind: "own product",
           tags: ["AI analysis", "SaaS"],
-          problem: "Apps built with Lovable, Bolt or v0 hide costs that only show up once they grow.",
-          ai: "An automated analysis reads the app, finds the cost traps and proposes a fix for each one.",
-          result: "Live and indexed on Google, with a free check as the way in.",
+          problem: "Apps built with Lovable, Bolt or v0 work, but hide costs that blow up as they grow.",
+          ai: "An automated analysis reads the app's stack, finds every cost trap and writes the fix, ready to paste into the assistant that built it.",
+          result: "One app at 25k users went from about USD 800 to USD 75 a month with a single fix. Free check, paid full report.",
+          hud: ["reading the app's stack", "3 cost traps found", "≈ USD 800 → 75 a month"],
           href: "https://clearlit.app",
           hrefLabel: "clearlit.app",
-          shot: "/shots/clearlit.png",
         },
         {
           id: "comolocobro",
           name: "comolocobro",
           kind: "own product",
-          tags: ["recommendation engine", "agent-run content"],
-          problem: "Getting paid from abroad in Argentina is a maze of platforms, fees and taxes.",
-          ai: "An engine compares payout routes and works out what you actually keep. An agent workflow keeps content and tax brackets current when the rules change.",
-          result: "Live, with organic traffic and up-to-date answers.",
+          tags: ["decision engine", "content agents"],
+          problem: "You get paid in dollars from abroad and don't know what you actually keep or the best way to collect it.",
+          ai: "An engine combines the payout method, your tax status and the live exchange rate, and works out your real net. An agent workflow keeps brackets, guides and content current.",
+          result: "Live, with organic traffic from people searching for exactly that answer.",
+          hud: ["USD 2,000 a month, monotributo", "comparing methods at the live rate", "best route for your case"],
           href: "https://comolocobro.com",
           hrefLabel: "comolocobro.com",
-          shot: "/shots/comolocobro.png",
         },
         {
           id: "bitewave",
           name: "Bitewave",
-          kind: "R&D",
-          tags: ["IoT", "tinyML", "data to content"],
-          problem: "Some physical signals go unread: vibration, impacts, motion.",
-          ai: "A Seeed Studio sensor captures vibration, a pipeline cleans it and turns it into events, and an on-device tinyML model can classify them offline. First use: a fishing rod's vibration turned into music and overlays for video.",
-          result: "The same base fits predictive maintenance for motors and pumps, farm machinery monitoring, or anywhere a vibration tells you something.",
+          kind: "in-house R&D",
+          tags: ["IoT", "tinyML", "generative video"],
+          problem: "Fishing bite sensors tell you something hit, but nothing more. And a rod's raw signal is mostly noise: wind, waves, casts.",
+          ai: "A Seeed Studio sensor reads the rod 200 times a second. A model separates cast, retrieve, strike and fight, and a generative pipeline turns each event into music and into the overlay video, built in code.",
+          result: "Every bite becomes a track and a ready-to-post video. The same base, with tinyML on the device, fits predictive maintenance, farm machinery or anywhere a vibration tells you something.",
+          hud: ["200 readings per second", "phases: cast, retrieve, strike, fight", "bite → MIDI → band → video"],
         },
       ],
     },

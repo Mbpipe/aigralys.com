@@ -1,0 +1,113 @@
+---
+// Barra superior común a las cuatro escenas: agente, tarea en curso y reloj.
+interface Props {
+  agent: string;
+  tasks: string[];
+}
+const { agent, tasks } = Astro.props;
+---
+
+<div class="sbar mono" aria-hidden="true">
+  <span class="sbar__dot"></span>
+  <span class="sbar__agent">{agent}</span>
+  <span class="sbar__tasks">
+    {tasks.map((t, i) => <span class="sbar__task" data-h={i}>{t}</span>)}
+  </span>
+  <span class="sbar__clock" data-clock>00:00.0</span>
+</div>
+
+<script>
+  // Reloj de cada agente: corre mientras su escena está a la vista.
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    for (const clock of document.querySelectorAll<HTMLElement>("[data-clock]")) {
+      const scene = clock.closest<HTMLElement>("[data-scene]") ?? clock;
+      let visible = false;
+      let elapsed = 0;
+      let last = 0;
+      new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(scene);
+      const tick = (now: number) => {
+        if (visible) {
+          elapsed += last ? now - last : 0;
+          const s = elapsed / 1000;
+          const m = Math.floor(s / 60);
+          clock.textContent = `${String(m).padStart(2, "0")}:${(s % 60).toFixed(1).padStart(4, "0")}`;
+        }
+        last = now;
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  }
+</script>
+
+<style>
+  .sbar {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    height: 7.2cqw;
+    min-height: 26px;
+    padding-inline: 1.6cqw;
+    font-size: clamp(8px, 1.25cqw, 12px);
+    color: var(--slate);
+    background: rgba(6, 12, 23, 0.86);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+  .sbar__dot {
+    flex: none;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    background: #5BD08A;
+    box-shadow: 0 0 10px rgba(91, 208, 138, 0.8);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .sbar__agent {
+    color: var(--ink);
+  }
+  .sbar__tasks {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 1.4em;
+    overflow: hidden;
+  }
+  .sbar__task {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--gold);
+    opacity: 0;
+    transform: translateY(100%);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s var(--ease-out);
+  }
+  :global(.chapter[data-step="0"]) .sbar__task[data-h="0"],
+  :global(.chapter[data-step="1"]) .sbar__task[data-h="1"],
+  :global(.chapter[data-step="2"]) .sbar__task[data-h="2"] {
+    opacity: 1;
+    transform: none;
+  }
+  .sbar__clock {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sbar__dot {
+      animation: none;
+    }
+  }
+</style>

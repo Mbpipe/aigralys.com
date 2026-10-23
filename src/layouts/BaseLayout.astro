@@ -1,4 +1,10 @@
 ---
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource/jetbrains-mono/700.css";
 import "../styles/global.css";
 import LangSwitcher from "../components/LangSwitcher.astro";
 import { strings, localeTag, localeHref, type Lang } from "../i18n/strings";
@@ -34,6 +40,23 @@ const ogImage = `${site}/og.png`;
     <link rel="alternate" hreflang="x-default" href={`${site}/`} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Aigralys",
+        url: site,
+        logo: `${site}/favicon.svg`,
+        image: ogImage,
+        email: "hello@aigralys.com",
+        description: t.meta.description,
+        sameAs: ["https://x.com/Aigralys"],
+        knowsAbout: ["AI agents", "AI consulting", "digital products", "generative video", "IoT", "MCP"],
+      })}
+    />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -48,13 +71,6 @@ const ogImage = `${site}/og.png`;
     <meta name="twitter:description" content={t.meta.description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <!-- Fuentes: JetBrains Mono (wordmark/acentos) + Inter (cuerpo) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
-    />
   </head>
   <body>
     <a class="skip-link" href="#main">{t.skipToContent}</a>

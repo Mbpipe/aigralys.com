@@ -1,0 +1,520 @@
+---
+import SceneBar from "./SceneBar.astro";
+
+interface Props {
+  tasks: string[];
+  lang: "es" | "en";
+}
+const { tasks, lang } = Astro.props;
+const es = lang === "es";
+const phases = es
+  ? ["espera", "lance", "recogida", "ataque", "pelea", "afuera"]
+  : ["waiting", "cast", "retrieve", "strike", "fight", "landed"];
+const L = es
+  ? { signal: "señal de la caña / 200 Hz", now: "actual", peak: "pico", model: "tinyML en el dispositivo", lanes: ["pez", "vos", "banda"] }
+  : { signal: "rod signal / 200 Hz", now: "now", peak: "peak", model: "on-device tinyML", lanes: ["fish", "you", "band"] };
+const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
+---
+
+<div class="scene scene--bw" data-scene="bitewave" data-phases={JSON.stringify(phases)} data-notes={JSON.stringify(notes)}>
+  <SceneBar agent="bitewave-pipeline" tasks={tasks} />
+
+  <div class="bw">
+    <div class="bw__signal">
+      <p class="bw__label mono">{L.signal}</p>
+      <canvas class="bw__wave" data-wave aria-hidden="true"></canvas>
+      <p class="bw__g mono" aria-hidden="true">
+        <span>{L.now} <b data-g>0,0</b> g</span>
+        <span>{L.peak} <b class="gold" data-pk>0,0</b> g</span>
+      </p>
+    </div>
+
+    <div class="bw__photo">
+      <div class="bw__kb">
+        <img src="/work/bitewave-rio.webp" alt="" width="1920" height="612" loading="lazy" decoding="async" />
+        <span class="bw__ring" data-ring></span>
+        <span class="bw__ring" data-ring></span>
+        <span class="bw__ring" data-ring></span>
+        <span class="bw__note" data-note></span>
+      </div>
+      <span class="bw__phase mono" data-phase>{phases[0]}</span>
+      <div class="bw__model mono" aria-hidden="true">
+        <p class="bw__mtitle">{L.model}</p>
+        {
+          phases.slice(1, 5).map((ph, i) => (
+            <p class="bw__cls" data-cls={i + 1}>
+              <span class="bw__cname">{ph}</span>
+              <span class="bw__cbar"><span /></span>
+              <span class="bw__cval">0.00</span>
+            </p>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="bw__roll">
+      <div class="bw__lanes mono" aria-hidden="true">
+        {L.lanes.map((l) => <span>{l}</span>)}
+      </div>
+      <canvas class="bw__rollc" data-roll aria-hidden="true"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Una salida de pesca simulada en loop de 14 s: señal, fases, modelo y música.
+  const T = 14;
+  const PH = [
+    [0, 1.5, 0], // espera
+    [1.5, 2.4, 1], // lance
+    [2.4, 6.8, 2], // recogida
+    [6.8, 7.4, 3], // ataque
+    [7.4, 12, 4], // pelea
+    [12, 14, 5], // afuera
+  ] as const;
+  const phaseAt = (t: number) => PH.find(([a, b]) => t >= a && t < b)![2];
+
+  // Eventos fijos del loop.
+  const taps: number[] = [];
+  for (let t = 2.6; t < 6.7; t += 0.42 + ((t * 7) % 1) * 0.12) taps.push(t);
+  const shakes: number[] = [];
+  for (let t = 7.6; t < 11.8; t += 0.3 + ((t * 13) % 1) * 0.3) shakes.push(t);
+  const strike = 6.9;
+
+  const hash = (n: number) => {
+    const x = Math.sin(n * 127.1) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  const pulse = (t: number, at: number, w: number) => (t >= at ? Math.exp(-(t - at) / w) : 0);
+
+  // Señal (g) en el instante t del loop.
+  const signal = (t: number, i: number) => {
+    const ph = phaseAt(t);
+    let s = (hash(i) - 0.5) * 0.06 + Math.sin(t * 2.1) * 0.04;
+    if (ph === 1) s += Math.sin(t * 60) * 1.4 * pulse(t, 1.5, 0.35);
+    for (const tp of taps) s += Math.sin((t - tp) * 90) * 0.38 * pulse(t, tp, 0.06);
+    s += Math.sin((t - strike) * 70) * 1.6 * pulse(t, strike, 0.18);
+    if (ph === 4) s += Math.sin(t * 22) * (0.35 + 0.25 * Math.sin(t * 1.7)) * 0.9;
+    for (const sh of shakes) s += Math.sin((sh - t) * 80) * 0.7 * pulse(t, sh, 0.08);
+    if (ph === 5) s += Math.sin(t * 18) * 0.3 * pulse(t, 12, 0.5);
+    return s;
+  };
+
+  const fmt = (n: number) => n.toFixed(1).replace(".", ",");
+
+  for (const scene of document.querySelectorAll<HTMLElement>('[data-scene="bitewave"]')) {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const phases: string[] = JSON.parse(scene.dataset.phases || "[]");
+    const noteNames: string[] = JSON.parse(scene.dataset.notes || "[]");
+    const wave = scene.querySelector<HTMLCanvasElement>("[data-wave]")!;
+    const roll = scene.querySelector<HTMLCanvasElement>("[data-roll]")!;
+    const wctx = wave.getContext("2d")!;
+    const rctx = roll.getContext("2d")!;
+    const gEl = scene.querySelector<HTMLElement>("[data-g]")!;
+    const pkEl = scene.querySelector<HTMLElement>("[data-pk]")!;
+    const phaseEl = scene.querySelector<HTMLElement>("[data-phase]")!;
+    const rings = [...scene.querySelectorAll<HTMLElement>("[data-ring]")];
+    const noteEl = scene.querySelector<HTMLElement>("[data-note]")!;
+    const cls = [...scene.querySelectorAll<HTMLElement>("[data-cls]")];
+    const conf = [0, 0, 0, 0, 0];
+    let ringIdx = 0;
+    let lastT = 0;
+    let peak = 0;
+
+    const fit = (c: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      c.width = Math.max(1, Math.round(c.clientWidth * dpr));
+      c.height = Math.max(1, Math.round(c.clientHeight * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    const ro = new ResizeObserver(() => {
+      fit(wave, wctx);
+      fit(roll, rctx);
+    });
+    ro.observe(wave);
+    ro.observe(roll);
+
+    const fire = (big: boolean, note?: string) => {
+      const r = rings[ringIdx++ % rings.length];
+      r.classList.remove("is-on", "is-big");
+      void r.offsetWidth;
+      r.classList.add("is-on");
+      if (big) r.classList.add("is-big");
+      if (note) {
+        noteEl.textContent = note;
+        noteEl.classList.remove("is-on");
+        void noteEl.offsetWidth;
+        noteEl.classList.add("is-on");
+      }
+    };
+
+    const draw = (time: number) => {
+      const t = (time / 1000) % T;
+      const ph = phaseAt(t);
+
+      // --- eventos que cruzaron desde el último cuadro ---
+      const crossed = (at: number) => (lastT <= t ? at > lastT && at <= t : at > lastT || at <= t);
+      taps.forEach((tp) => crossed(tp) && fire(false));
+      if (crossed(strike)) fire(true, noteNames[0]);
+      shakes.forEach((sh, k) => crossed(sh) && fire(k % 2 === 0, noteNames[(k + 1) % noteNames.length]));
+      lastT = t;
+
+      // --- onda: últimos 4 s ---
+      const W = wave.clientWidth,
+        H = wave.clientHeight;
+      wctx.clearRect(0, 0, W, H);
+      const span = 4;
+      const n = Math.max(2, Math.floor(W / 2));
+      wctx.strokeStyle = "rgba(124, 138, 156, 0.35)";
+      wctx.setLineDash([3, 4]);
+      wctx.beginPath();
+      wctx.moveTo(0, H * 0.5 - H * 0.22);
+      wctx.lineTo(W, H * 0.5 - H * 0.22);
+      wctx.stroke();
+      wctx.setLineDash([]);
+      wctx.lineWidth = 1.4;
+      wctx.strokeStyle = "#E2AC55";
+      wctx.shadowColor = "rgba(226, 172, 85, 0.7)";
+      wctx.shadowBlur = 6;
+      wctx.beginPath();
+      let cur = 0;
+      for (let k = 0; k <= n; k++) {
+        const tt = t - span + (k / n) * span;
+        const tw = ((tt % T) + T) % T;
+        const v = signal(tw, Math.floor(tt * 200));
+        if (k === n) cur = Math.abs(v);
+        const y = H * 0.5 - Math.max(-1, Math.min(1, v / 1.6)) * H * 0.46;
+        k ? wctx.lineTo((k / n) * W, y) : wctx.moveTo(0, y);
+      }
+      wctx.stroke();
+      wctx.shadowBlur = 0;
+
+      peak = t < 0.1 ? 0 : Math.max(peak * 0.999, cur * 2.2);
+      gEl.textContent = fmt(cur * 2.2);
+      pkEl.textContent = fmt(peak);
+
+      // --- fase y modelo ---
+      phaseEl.textContent = phases[ph];
+      phaseEl.dataset.ph = String(ph);
+      for (let k = 1; k <= 4; k++) {
+        const target = ph === k ? 0.86 + hash(Math.floor(time / 300) + k) * 0.12 : 0.02 + hash(Math.floor(time / 400) * k) * 0.12;
+        conf[k] += (target - conf[k]) * 0.08;
+        const el = cls[k - 1];
+        el.style.setProperty("--v", conf[k].toFixed(3));
+        el.classList.toggle("is-top", ph === k);
+        el.querySelector<HTMLElement>(".bw__cval")!.textContent = conf[k].toFixed(2);
+      }
+
+      // --- partitura: 6 s, "ahora" al 82 % ---
+      const RW = roll.clientWidth,
+        RH = roll.clientHeight;
+      rctx.clearRect(0, 0, RW, RH);
+      const nowX = RW * 0.82;
+      const pxs = (RW * 0.82) / 5;
+      const laneH = RH / 3;
+      for (let l = 0; l < 3; l++) {
+        rctx.fillStyle = l % 2 ? "rgba(255,255,255,0.015)" : "rgba(255,255,255,0.03)";
+        rctx.fillRect(0, l * laneH, RW, laneH);
+      }
+      const block = (at: number, dur: number, lane: number, row: number, color: string, glow = false) => {
+        let dt = t - at;
+        if (dt < -T / 2) dt += T;
+        if (dt > T / 2) dt -= T;
+        if (dt < 0 || dt > 5.2) return;
+        const x = nowX - dt * pxs;
+        const y = lane * laneH + laneH * 0.18 + (row % 4) * (laneH * 0.16);
+        rctx.fillStyle = color;
+        rctx.shadowColor = glow ? color : "transparent";
+        rctx.shadowBlur = glow ? 8 : 0;
+        rctx.fillRect(x, y, Math.max(3, dur * pxs), laneH * 0.12);
+      };
+      shakes.forEach((sh, k) => block(sh, 0.22, 0, k * 3, "#E2AC55", true));
+      block(strike, 0.5, 0, 1, "#F6CD82", true);
+      taps.forEach((tp, k) => block(tp, 0.14, 1, k * 2, "#8FB8DE"));
+      for (let b = 0; b < T; b += 0.5) {
+        const bp = phaseAt(b);
+        if (bp >= 2 && bp <= 4) block(b, 0.35, 2, Math.floor(b * 2), "rgba(244, 243, 239, 0.28)");
+      }
+      rctx.shadowBlur = 0;
+      rctx.fillStyle = "#F4F3EF";
+      rctx.fillRect(nowX, 0, 1.5, RH);
+
+      if (running) raf = requestAnimationFrame(draw);
+    };
+
+    let running = false;
+    let raf = 0;
+    if (still) {
+      requestAnimationFrame(() => {
+        fit(wave, wctx);
+        fit(roll, rctx);
+        draw(9200);
+      });
+    } else {
+      new IntersectionObserver(([e]) => {
+        running = e.isIntersecting;
+        cancelAnimationFrame(raf);
+        if (running) raf = requestAnimationFrame(draw);
+      }).observe(scene);
+    }
+  }
+</script>
+
+<style>
+  .scene--bw {
+    background: #070D18;
+  }
+  .bw {
+    position: absolute;
+    inset: 7.2cqw 0 0 0;
+    display: grid;
+    grid-template-rows: 22% minmax(0, 1fr) 25%;
+    font-size: clamp(7px, 1.08cqw, 12px);
+  }
+
+  .bw__signal {
+    position: relative;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: 1.5cqw;
+    padding: 0.6cqw 1.6cqw 0.4cqw;
+  }
+  .bw__label {
+    position: absolute;
+    left: 1.6cqw;
+    top: 0.6cqw;
+    color: var(--slate);
+    font-size: 0.9em;
+  }
+  .bw__wave,
+  .bw__rollc {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  .bw__g {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    color: var(--slate);
+    text-align: right;
+  }
+  .bw__g b {
+    font-size: 1.6em;
+    color: var(--ink);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .bw__g b.gold {
+    color: var(--gold);
+  }
+
+  .bw__photo {
+    position: relative;
+    overflow: hidden;
+    border-block: 1px solid var(--border);
+  }
+  .bw__kb {
+    position: absolute;
+    inset: 0;
+    animation: kenburns 18s ease-in-out infinite alternate;
+    transform-origin: 54% 20%;
+  }
+  .bw__kb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @keyframes kenburns {
+    from {
+      transform: scale(1.02);
+    }
+    to {
+      transform: scale(1.12) translateX(-1.5%);
+    }
+  }
+
+  /* Anillos en la punta de la caña: cada nota que dispara el pez. */
+  .bw__ring {
+    position: absolute;
+    left: 53.6%;
+    top: 7%;
+    width: 4cqw;
+    height: 4cqw;
+    margin: -2cqw 0 0 -2cqw;
+    border-radius: 50%;
+    border: 2px solid #8FB8DE;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .bw__ring.is-on {
+    animation: ring 0.9s var(--ease-out) forwards;
+  }
+  .bw__ring.is-big {
+    border-color: var(--gold);
+    box-shadow: 0 0 14px rgba(226, 172, 85, 0.8);
+  }
+  @keyframes ring {
+    from {
+      opacity: 1;
+      transform: scale(0.4);
+    }
+    to {
+      opacity: 0;
+      transform: scale(2.6);
+    }
+  }
+  .bw__note {
+    position: absolute;
+    left: 57%;
+    top: 14%;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 5cqw;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(226, 172, 85, 0.8);
+    opacity: 0;
+  }
+  .bw__note.is-on {
+    animation: note 0.8s var(--ease-out) forwards;
+  }
+  @keyframes note {
+    0% {
+      opacity: 0;
+      transform: translateY(20%) scale(0.8);
+    }
+    25% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-30%);
+    }
+  }
+
+  .bw__phase {
+    position: absolute;
+    left: 1.6cqw;
+    top: 1.2cqw;
+    padding: 0.35em 0.8em 0.35em 1.8em;
+    background: rgba(6, 12, 23, 0.8);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--ink);
+  }
+  .bw__phase::before {
+    content: "";
+    position: absolute;
+    left: 0.7em;
+    top: 50%;
+    width: 0.55em;
+    height: 0.55em;
+    margin-top: -0.275em;
+    border-radius: 50%;
+    background: #8FB8DE;
+  }
+  .bw__phase:is([data-ph="3"], [data-ph="4"])::before {
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(226, 172, 85, 0.9);
+  }
+
+  .bw__model {
+    position: absolute;
+    right: 1.6cqw;
+    top: 1.2cqw;
+    width: 25cqw;
+    min-width: 130px;
+    padding: 0.9em 1em;
+    background: rgba(6, 12, 23, 0.84);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45em;
+  }
+  .bw__mtitle {
+    color: var(--gold);
+    margin-bottom: 0.15em;
+  }
+  .bw__cls {
+    display: grid;
+    grid-template-columns: 5.5em 1fr 2.6em;
+    align-items: center;
+    gap: 0.6em;
+    color: var(--slate);
+  }
+  .bw__cbar {
+    height: 0.45em;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bw__cbar span {
+    display: block;
+    height: 100%;
+    width: calc(var(--v, 0) * 100%);
+    background: var(--slate);
+  }
+  .bw__cval {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .bw__cls.is-top {
+    color: var(--ink);
+  }
+  .bw__cls.is-top .bw__cbar span {
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(226, 172, 85, 0.8);
+  }
+
+  .bw__roll {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .bw__lanes {
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    align-items: center;
+    padding-inline: 1.6cqw 1cqw;
+    font-size: 0.9em;
+  }
+  .bw__lanes span:nth-child(1) {
+    color: var(--gold);
+  }
+  .bw__lanes span:nth-child(2) {
+    color: #8FB8DE;
+  }
+  .bw__lanes span:nth-child(3) {
+    color: var(--slate);
+  }
+
+
+  @container (max-width: 520px) {
+    .bw__model {
+      width: 44cqw;
+      min-width: 0;
+      padding: 0.5em 0.6em;
+      gap: 0.25em;
+    }
+    .bw__cls {
+      grid-template-columns: 4.6em 1fr;
+    }
+    .bw__cval,
+    .bw__label,
+    .bw__g span:first-child {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bw__kb {
+      animation: none;
+    }
+  }
+</style>
