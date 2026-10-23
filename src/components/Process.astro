@@ -1,5 +1,6 @@
 ---
 import { strings, type Lang } from "../i18n/strings";
+import Words from "./Words.astro";
 
 interface Props {
   lang: Lang;
@@ -10,8 +11,8 @@ const t = strings[lang];
 
 <section class="section" id="proceso" aria-labelledby="proceso-title">
   <div class="container">
-    <h2 class="section__title" id="proceso-title">{t.process.heading}</h2>
-    <ol class="steps" role="list">
+    <Words text={t.process.heading} class="section__title" id="proceso-title" />
+    <ol class="steps" role="list" data-reveal>
       {
         t.process.steps.map((s, i) => (
           <li class="step">
@@ -42,9 +43,46 @@ const t = strings[lang];
   }
 
   .step {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
+    padding-top: 1.4rem;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+  .step::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 1px;
+    width: 100%;
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(226, 172, 85, 0.6);
+    transform-origin: left;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .step::after {
+      transform: scaleX(0);
+      transition: transform 1s var(--ease-out);
+    }
+    :global(.js) .step:nth-child(2)::after {
+      transition-delay: 0.45s;
+    }
+    :global(.js) .step:nth-child(3)::after {
+      transition-delay: 0.9s;
+    }
+    :global(.js) .steps.is-in .step::after {
+      transform: none;
+    }
   }
   .step__num {
     color: var(--gold);
@@ -52,8 +90,9 @@ const t = strings[lang];
   }
   .step__title {
     font-family: var(--mono);
-    font-size: 1.1rem;
+    font-size: clamp(1.2rem, 2.4vw, 1.5rem);
     font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--ink);
   }
   .step__body {

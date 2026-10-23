@@ -40,20 +40,20 @@ type Case = {
 type Strings = {
   meta: { title: string; description: string };
   skipToContent: string;
-  nav: { services: string; cases: string; contact: string };
+  nav: { open: string; cases: string; contact: string };
   hero: {
     title: string;
     lede: string;
     ctaContact: string;
     ctaCases: string;
-    session: string;
-    log: string[];
-    caption: string;
+    scroll: string;
   };
-  services: {
-    heading: string;
-    intro: string;
-    items: { title: string; body: string; examples: string[] }[];
+  open: {
+    prefix: string;
+    phrases: string[];
+    body: string;
+    cta: string;
+    marquee: string[];
   };
   cases: {
     heading: string;
@@ -61,6 +61,7 @@ type Strings = {
     labels: { problem: string; ai: string; result: string };
     views: { dia: string; atardecer: string; noche: string };
     viewsLabel: string;
+    caption: string;
     items: Case[];
   };
   process: { heading: string; steps: { title: string; body: string }[] };
@@ -70,8 +71,6 @@ type Strings = {
     name: string;
     email: string;
     company: string;
-    need: string;
-    needOptions: string[];
     message: string;
     messageHint: string;
     submit: string;
@@ -91,45 +90,30 @@ export const strings: Record<Lang, Strings> = {
         "Estudio que construye productos digitales con IA y agentes que automatizan, diseñan y producen para tu negocio. Consultoría e implementación de IA.",
     },
     skipToContent: "Saltar al contenido",
-    nav: { services: "qué hacemos", cases: "casos", contact: "contacto" },
+    nav: { open: "qué podemos hacer", cases: "casos", contact: "contacto" },
     hero: {
       title: "Productos y agentes de IA que trabajan para tu negocio.",
-      lede: "Diseñamos, construimos y operamos productos digitales con IA adentro. Desde un agente que automatiza una tarea hasta un equipo de agentes que produce los renders o el comercial de tu marca.",
+      lede: "Diseñamos, construimos y operamos productos y agentes de IA a medida. Si tu negocio tiene un proceso, un producto o una idea, hay algo para poner a trabajar.",
       ctaContact: "Contanos tu proyecto",
       ctaCases: "Ver casos",
-      session: "agente de render / bancor-arena",
-      log: [
-        "brief: tribuna modular, vista nocturna, LEDs encendidos",
-        "escena abierta en Blender vía MCP",
-        "cámara, luces y materiales ajustados",
-        "render 3840 × 2160 entregado",
-      ],
-      caption: "Render producido por un agente de IA conectado a Blender, para Bancor Arena.",
+      scroll: "seguí bajando",
     },
-    services: {
-      heading: "Qué hacemos",
-      intro: "Cuatro formas de poner IA a trabajar. Se pueden combinar.",
-      items: [
-        {
-          title: "Agentes que automatizan",
-          body: "Un agente que atiende consultas, cotiza, carga datos o arma el reporte de cada lunes. Conectado a las herramientas que ya usás.",
-          examples: ["atención y respuesta", "cotizaciones", "carga y cruce de datos", "reportes"],
-        },
-        {
-          title: "Agentes creativos para tu marca",
-          body: "Asignamos agentes a tu negocio para producir renders 3D, piezas para redes y comerciales audiovisuales con IA, con herramientas como Higgsfield y Blender.",
-          examples: ["renders de producto", "comerciales con IA", "piezas para redes", "visores 3D"],
-        },
-        {
-          title: "Productos digitales con IA",
-          body: "De la idea a producción: apps web, herramientas internas y dispositivos IoT con modelos de IA adentro. Lo construimos y lo dejamos andando.",
-          examples: ["apps web", "herramientas internas", "IoT y sensores", "MVPs"],
-        },
-        {
-          title: "Consultoría en IA",
-          body: "Dónde conviene usar IA en tu negocio, cuánto cuesta operarla y por dónde empezar. Con un prototipo en la mano, no con una presentación.",
-          examples: ["casos de uso", "costos de operación", "elección de herramientas", "hoja de ruta"],
-        },
+    open: {
+      prefix: "La IA puede",
+      phrases: [
+        "responder consultas a las 3 de la mañana.",
+        "renderizar un producto que todavía no se fabricó.",
+        "filmar un comercial sin cámara.",
+        "escuchar la vibración de una máquina antes de que se rompa.",
+        "cotizar en segundos lo que hoy lleva un día.",
+        "ordenar diez años de planillas.",
+        "hacer eso que estás pensando.",
+      ],
+      body: "Agentes, productos digitales, piezas audiovisuales, dispositivos conectados o consultoría. No trabajamos con un catálogo: arrancamos por tu problema, aunque no se parezca a nada de lo que ves acá.",
+      cta: "Contanos el tuyo",
+      marquee: [
+        "agentes autónomos", "automatización", "renders 3D", "video generativo", "MCP", "LLMs",
+        "RAG", "visión por computadora", "tinyML", "IoT", "productos digitales", "consultoría IA",
       ],
     },
     cases: {
@@ -138,6 +122,7 @@ export const strings: Record<Lang, Strings> = {
       labels: { problem: "El problema", ai: "Qué hace la IA", result: "Resultado" },
       views: { dia: "día", atardecer: "atardecer", noche: "noche" },
       viewsLabel: "Ver render",
+      caption: "Renders producidos por un agente de IA conectado a Blender.",
       items: [
         {
           id: "bancor",
@@ -194,21 +179,13 @@ export const strings: Record<Lang, Strings> = {
       ],
     },
     contact: {
-      heading: "Contanos tu proyecto",
-      lede: "Dejanos el problema o la idea. Te respondemos por mail.",
+      heading: "¿Qué querés poner a trabajar?",
+      lede: "Contanos qué hace tu negocio y qué te gustaría resolver. Te respondemos por mail.",
       name: "Nombre",
       email: "Email",
       company: "Empresa o marca (opcional)",
-      need: "Qué necesitás",
-      needOptions: [
-        "Un agente para automatizar algo",
-        "Renders, piezas o un comercial con IA",
-        "Un producto digital o IoT",
-        "Consultoría en IA",
-        "Otra cosa",
-      ],
-      message: "Contanos un poco más",
-      messageHint: "Qué hace tu negocio y qué te gustaría resolver.",
+      message: "Tu proyecto, problema o idea",
+      messageHint: "Lo que sea. Si no sabés por dónde empezar, también sirve.",
       submit: "Enviar consulta",
       sending: "Enviando…",
       ok: "Consulta enviada. Te escribimos pronto.",
@@ -230,45 +207,30 @@ export const strings: Record<Lang, Strings> = {
         "A studio building AI-native digital products and agents that automate, design and produce for your business. AI consulting and implementation.",
     },
     skipToContent: "Skip to content",
-    nav: { services: "what we do", cases: "work", contact: "contact" },
+    nav: { open: "what's possible", cases: "work", contact: "contact" },
     hero: {
       title: "AI products and agents that work for your business.",
-      lede: "We design, build and run digital products with AI inside. From one agent that automates a task to a team of agents producing your brand's renders or commercial.",
+      lede: "We design, build and run custom AI products and agents. If your business has a process, a product or an idea, there's something to put to work.",
       ctaContact: "Tell us about your project",
       ctaCases: "See the work",
-      session: "render agent / bancor-arena",
-      log: [
-        "brief: modular grandstand, night view, LEDs on",
-        "scene opened in Blender over MCP",
-        "camera, lights and materials set",
-        "3840 × 2160 render delivered",
-      ],
-      caption: "Render produced by an AI agent connected to Blender, for Bancor Arena.",
+      scroll: "keep scrolling",
     },
-    services: {
-      heading: "What we do",
-      intro: "Four ways to put AI to work. They combine well.",
-      items: [
-        {
-          title: "Agents that automate",
-          body: "An agent that answers inquiries, writes quotes, enters data or builds the Monday report. Plugged into the tools you already use.",
-          examples: ["customer replies", "quotes", "data entry and matching", "reports"],
-        },
-        {
-          title: "Creative agents for your brand",
-          body: "We assign agents to your business to produce 3D renders, social pieces and AI video commercials, with tools like Higgsfield and Blender.",
-          examples: ["product renders", "AI commercials", "social pieces", "3D viewers"],
-        },
-        {
-          title: "AI-native digital products",
-          body: "From idea to production: web apps, internal tools and IoT devices with AI models inside. We build it and keep it running.",
-          examples: ["web apps", "internal tools", "IoT and sensors", "MVPs"],
-        },
-        {
-          title: "AI consulting",
-          body: "Where AI pays off in your business, what it costs to run and where to start. With a working prototype, not a slide deck.",
-          examples: ["use cases", "running costs", "tool selection", "roadmap"],
-        },
+    open: {
+      prefix: "AI can",
+      phrases: [
+        "answer customers at 3 a.m.",
+        "render a product that hasn't been built yet.",
+        "shoot a commercial without a camera.",
+        "hear a machine's vibration before it breaks.",
+        "quote in seconds what takes a day today.",
+        "sort out ten years of spreadsheets.",
+        "do that thing you're thinking of.",
+      ],
+      body: "Agents, digital products, video and visuals, connected devices or consulting. We don't work from a catalog: we start from your problem, even if it looks nothing like what you see here.",
+      cta: "Tell us yours",
+      marquee: [
+        "autonomous agents", "automation", "3D renders", "generative video", "MCP", "LLMs",
+        "RAG", "computer vision", "tinyML", "IoT", "digital products", "AI consulting",
       ],
     },
     cases: {
@@ -277,6 +239,7 @@ export const strings: Record<Lang, Strings> = {
       labels: { problem: "The problem", ai: "What the AI does", result: "Outcome" },
       views: { dia: "day", atardecer: "sunset", noche: "night" },
       viewsLabel: "View render",
+      caption: "Renders produced by an AI agent connected to Blender.",
       items: [
         {
           id: "bancor",
@@ -333,21 +296,13 @@ export const strings: Record<Lang, Strings> = {
       ],
     },
     contact: {
-      heading: "Tell us about your project",
-      lede: "Leave us the problem or the idea. We'll reply by email.",
+      heading: "What do you want to put to work?",
+      lede: "Tell us what your business does and what you'd like to solve. We'll reply by email.",
       name: "Name",
       email: "Email",
       company: "Company or brand (optional)",
-      need: "What do you need",
-      needOptions: [
-        "An agent to automate something",
-        "Renders, pieces or an AI commercial",
-        "A digital or IoT product",
-        "AI consulting",
-        "Something else",
-      ],
-      message: "Tell us a bit more",
-      messageHint: "What your business does and what you'd like to solve.",
+      message: "Your project, problem or idea",
+      messageHint: "Anything goes. Not sure where to start? That works too.",
       submit: "Send inquiry",
       sending: "Sending…",
       ok: "Inquiry sent. We'll write back soon.",
