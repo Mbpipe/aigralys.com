@@ -6,8 +6,8 @@
   - Bancor (`render-agent`): render por tiles en "clay" que se completa con el scroll + panel de Cycles; después día → atardecer → noche.
   - clearlit (`cost-agent`): árbol de archivos escaneado, curva de costo hoy vs. con arreglos, 3 hallazgos y el arreglo tipeándose.
   - comolocobro (`payout-agent`): USD 2.000 fluyendo por 4 rutas de cobro, netos que cuentan, dólar en vivo, gana la mejor ruta.
-  - Bitewave (`bitewave-pipeline`): loop de 14 s con señal en vivo, foto del río con anillos y notas en la punta, clasificador tinyML y partitura (pez / vos / banda).
-- Sección "La misma base, en el campo" (`src/components/Agro.astro`): 10 aplicaciones IoT + IA local para el agro derivadas de Bitewave.
+  - Bitewave (`bitewave-edge`): sin referencias a pesca. Concepto IoT + Edge AI: el dispositivo interpreta, no solo mide. Loop de 16 s sobre el aireador de un silo (foto `bitewave-campo.webp`): vibración en vivo, sensor tradicional (mm/s casi igual) vs. Bitewave (patrón habitual / desvío / patrón distinto), clasificador en el dispositivo, puntaje de anomalía con umbral y aviso al celular.
+- Sección "Del sensor que mide al que entiende" (`src/components/Agro.astro`): comparación sensor tradicional vs. dispositivo con tinyML + 10 aplicaciones IoT con IA local para el agro.
 - Fuentes autoalojadas con @fontsource (sin Google Fonts).
 - OG image nueva con el claim actual, apple-touch-icon, JSON-LD de Organization.
 - Contacto con panel y fondo de puntos; números de "Cómo trabajamos" en contorno.

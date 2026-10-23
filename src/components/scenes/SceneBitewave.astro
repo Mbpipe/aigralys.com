@@ -7,119 +7,120 @@ interface Props {
 }
 const { tasks, lang } = Astro.props;
 const es = lang === "es";
-const phases = es
-  ? ["espera", "lance", "recogida", "ataque", "pelea", "afuera"]
-  : ["waiting", "cast", "retrieve", "strike", "fight", "landed"];
 const L = es
-  ? { signal: "señal de la caña / 200 Hz", now: "actual", peak: "pico", model: "tinyML en el dispositivo", lanes: ["pez", "vos", "banda"] }
-  : { signal: "rod signal / 200 Hz", now: "now", peak: "peak", model: "on-device tinyML", lanes: ["fish", "you", "band"] };
-const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
+  ? {
+      signal: "vibración / aireador del silo 2",
+      classic: "sensor tradicional",
+      unit: "mm/s",
+      edge: "Bitewave",
+      states: ["patrón habitual", "desvío detectado", "patrón distinto"],
+      node: "nodo 03",
+      model: "modelo en el dispositivo",
+      classes: ["normal", "desbalance", "rodamiento", "obstrucción"],
+      score: "puntaje de anomalía",
+      threshold: "umbral",
+      alert: "El patrón de vibración del aireador cambió respecto de su funcionamiento habitual.",
+      alertTitle: "aviso al celular",
+    }
+  : {
+      signal: "vibration / silo 2 aerator",
+      classic: "traditional sensor",
+      unit: "mm/s",
+      edge: "Bitewave",
+      states: ["usual pattern", "drift detected", "different pattern"],
+      node: "node 03",
+      model: "on-device model",
+      classes: ["normal", "imbalance", "bearing", "blockage"],
+      score: "anomaly score",
+      threshold: "threshold",
+      alert: "The aerator's vibration pattern has changed from its usual behavior.",
+      alertTitle: "phone alert",
+    };
 ---
 
-<div class="scene scene--bw" data-scene="bitewave" data-phases={JSON.stringify(phases)} data-notes={JSON.stringify(notes)}>
-  <SceneBar agent="bitewave-pipeline" tasks={tasks} />
+<div class="scene scene--bw" data-scene="bitewave" data-states={JSON.stringify(L.states)}>
+  <SceneBar agent="bitewave-edge" tasks={tasks} />
 
   <div class="bw">
     <div class="bw__signal">
       <p class="bw__label mono">{L.signal}</p>
       <canvas class="bw__wave" data-wave aria-hidden="true"></canvas>
-      <p class="bw__g mono" aria-hidden="true">
-        <span>{L.now} <b data-g>0,0</b> g</span>
-        <span>{L.peak} <b class="gold" data-pk>0,0</b> g</span>
-      </p>
+      <div class="bw__read mono" aria-hidden="true">
+        <p class="bw__classic"><span>{L.classic}</span><b data-rms>4,2</b> {L.unit}</p>
+        <p class="bw__edge"><span>{L.edge}</span><b data-state>{L.states[0]}</b></p>
+      </div>
     </div>
 
     <div class="bw__photo">
       <div class="bw__kb">
-        <img src="/work/bitewave-rio.webp" alt="" width="1920" height="612" loading="lazy" decoding="async" />
-        <span class="bw__ring" data-ring></span>
-        <span class="bw__ring" data-ring></span>
-        <span class="bw__ring" data-ring></span>
-        <span class="bw__note" data-note></span>
+        <img src="/work/bitewave-campo.webp" alt="" width="1748" height="560" loading="lazy" decoding="async" />
+        <span class="bw__node" data-node>
+          <span class="bw__ring"></span><span class="bw__ring bw__ring--2"></span>
+          <span class="bw__pin"></span>
+        </span>
+        <span class="bw__nodelabel mono">{L.node}</span>
       </div>
-      <span class="bw__phase mono" data-phase>{phases[0]}</span>
+
       <div class="bw__model mono" aria-hidden="true">
         <p class="bw__mtitle">{L.model}</p>
         {
-          phases.slice(1, 5).map((ph, i) => (
-            <p class="bw__cls" data-cls={i + 1}>
-              <span class="bw__cname">{ph}</span>
+          L.classes.map((c, i) => (
+            <p class="bw__cls" data-cls={i}>
+              <span>{c}</span>
               <span class="bw__cbar"><span /></span>
               <span class="bw__cval">0.00</span>
             </p>
           ))
         }
       </div>
+
+      <div class="bw__alert" data-alert aria-hidden="true">
+        <p class="bw__atitle mono">{L.alertTitle}</p>
+        <p>{L.alert}</p>
+      </div>
     </div>
 
-    <div class="bw__roll">
-      <div class="bw__lanes mono" aria-hidden="true">
-        {L.lanes.map((l) => <span>{l}</span>)}
-      </div>
-      <canvas class="bw__rollc" data-roll aria-hidden="true"></canvas>
+    <div class="bw__score">
+      <p class="bw__label mono">{L.score} <span class="bw__thr">/ {L.threshold} 0.70</span></p>
+      <canvas class="bw__scorec" data-score aria-hidden="true"></canvas>
     </div>
   </div>
 </div>
 
 <script>
-  // Una salida de pesca simulada en loop de 14 s: señal, fases, modelo y música.
-  const T = 14;
-  const PH = [
-    [0, 1.5, 0], // espera
-    [1.5, 2.4, 1], // lance
-    [2.4, 6.8, 2], // recogida
-    [6.8, 7.4, 3], // ataque
-    [7.4, 12, 4], // pelea
-    [12, 14, 5], // afuera
-  ] as const;
-  const phaseAt = (t: number) => PH.find(([a, b]) => t >= a && t < b)![2];
-
-  // Eventos fijos del loop.
-  const taps: number[] = [];
-  for (let t = 2.6; t < 6.7; t += 0.42 + ((t * 7) % 1) * 0.12) taps.push(t);
-  const shakes: number[] = [];
-  for (let t = 7.6; t < 11.8; t += 0.3 + ((t * 13) % 1) * 0.3) shakes.push(t);
-  const strike = 6.9;
-
+  // Loop de 16 s: funcionamiento normal → desvío → patrón distinto → aviso.
+  const T = 16;
   const hash = (n: number) => {
     const x = Math.sin(n * 127.1) * 43758.5453;
     return x - Math.floor(x);
   };
-  const pulse = (t: number, at: number, w: number) => (t >= at ? Math.exp(-(t - at) / w) : 0);
-
-  // Señal (g) en el instante t del loop.
-  const signal = (t: number, i: number) => {
-    const ph = phaseAt(t);
-    let s = (hash(i) - 0.5) * 0.06 + Math.sin(t * 2.1) * 0.04;
-    if (ph === 1) s += Math.sin(t * 60) * 1.4 * pulse(t, 1.5, 0.35);
-    for (const tp of taps) s += Math.sin((t - tp) * 90) * 0.38 * pulse(t, tp, 0.06);
-    s += Math.sin((t - strike) * 70) * 1.6 * pulse(t, strike, 0.18);
-    if (ph === 4) s += Math.sin(t * 22) * (0.35 + 0.25 * Math.sin(t * 1.7)) * 0.9;
-    for (const sh of shakes) s += Math.sin((sh - t) * 80) * 0.7 * pulse(t, sh, 0.08);
-    if (ph === 5) s += Math.sin(t * 18) * 0.3 * pulse(t, 12, 0.5);
-    return s;
+  const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  // Cuánto se apartó el patrón de lo habitual (0 normal, 1 distinto).
+  const drift = (t: number) => (t < 7 ? 0 : t < 10.5 ? (t - 7) / 3.5 : t < 15 ? 1 : 1 - (t - 15));
+  // Vibración: energía parecida, pero cambia la forma (aparece una armónica y un golpeteo).
+  const vib = (t: number, i: number) => {
+    const d = clamp(drift(t));
+    const base = Math.sin(t * 2 * Math.PI * 6) * 0.55;
+    const harm = Math.sin(t * 2 * Math.PI * 17 + 1.3) * 0.45 * d;
+    const knock = (t * 3) % 1 < 0.06 ? 0.7 * d : 0;
+    return base * (1 - 0.25 * d) + harm + knock * Math.sin(t * 300) + (hash(i) - 0.5) * 0.12;
   };
-
-  const fmt = (n: number) => n.toFixed(1).replace(".", ",");
+  const score = (t: number) =>
+    clamp(0.06 + 0.04 * Math.sin(t * 3) + clamp(drift(t)) * 0.86 + (hash(Math.floor(t * 6)) - 0.5) * 0.04);
 
   for (const scene of document.querySelectorAll<HTMLElement>('[data-scene="bitewave"]')) {
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const phases: string[] = JSON.parse(scene.dataset.phases || "[]");
-    const noteNames: string[] = JSON.parse(scene.dataset.notes || "[]");
+    const states: string[] = JSON.parse(scene.dataset.states || "[]");
     const wave = scene.querySelector<HTMLCanvasElement>("[data-wave]")!;
-    const roll = scene.querySelector<HTMLCanvasElement>("[data-roll]")!;
+    const sc = scene.querySelector<HTMLCanvasElement>("[data-score]")!;
     const wctx = wave.getContext("2d")!;
-    const rctx = roll.getContext("2d")!;
-    const gEl = scene.querySelector<HTMLElement>("[data-g]")!;
-    const pkEl = scene.querySelector<HTMLElement>("[data-pk]")!;
-    const phaseEl = scene.querySelector<HTMLElement>("[data-phase]")!;
-    const rings = [...scene.querySelectorAll<HTMLElement>("[data-ring]")];
-    const noteEl = scene.querySelector<HTMLElement>("[data-note]")!;
+    const sctx = sc.getContext("2d")!;
+    const rmsEl = scene.querySelector<HTMLElement>("[data-rms]")!;
+    const stateEl = scene.querySelector<HTMLElement>("[data-state]")!;
+    const alertEl = scene.querySelector<HTMLElement>("[data-alert]")!;
+    const nodeEl = scene.querySelector<HTMLElement>("[data-node]")!;
     const cls = [...scene.querySelectorAll<HTMLElement>("[data-cls]")];
-    const conf = [0, 0, 0, 0, 0];
-    let ringIdx = 0;
-    let lastT = 0;
-    let peak = 0;
+    const conf = [1, 0, 0, 0];
 
     const fit = (c: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -129,115 +130,91 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
     };
     const ro = new ResizeObserver(() => {
       fit(wave, wctx);
-      fit(roll, rctx);
+      fit(sc, sctx);
     });
     ro.observe(wave);
-    ro.observe(roll);
-
-    const fire = (big: boolean, note?: string) => {
-      const r = rings[ringIdx++ % rings.length];
-      r.classList.remove("is-on", "is-big");
-      void r.offsetWidth;
-      r.classList.add("is-on");
-      if (big) r.classList.add("is-big");
-      if (note) {
-        noteEl.textContent = note;
-        noteEl.classList.remove("is-on");
-        void noteEl.offsetWidth;
-        noteEl.classList.add("is-on");
-      }
-    };
+    ro.observe(sc);
 
     const draw = (time: number) => {
       const t = (time / 1000) % T;
-      const ph = phaseAt(t);
+      const d = clamp(drift(t));
+      const level = d < 0.15 ? 0 : d < 0.85 ? 1 : 2;
 
-      // --- eventos que cruzaron desde el último cuadro ---
-      const crossed = (at: number) => (lastT <= t ? at > lastT && at <= t : at > lastT || at <= t);
-      taps.forEach((tp) => crossed(tp) && fire(false));
-      if (crossed(strike)) fire(true, noteNames[0]);
-      shakes.forEach((sh, k) => crossed(sh) && fire(k % 2 === 0, noteNames[(k + 1) % noteNames.length]));
-      lastT = t;
-
-      // --- onda: últimos 4 s ---
+      // --- vibración en vivo: último 1,2 s ---
       const W = wave.clientWidth,
         H = wave.clientHeight;
       wctx.clearRect(0, 0, W, H);
-      const span = 4;
-      const n = Math.max(2, Math.floor(W / 2));
-      wctx.strokeStyle = "rgba(124, 138, 156, 0.35)";
-      wctx.setLineDash([3, 4]);
-      wctx.beginPath();
-      wctx.moveTo(0, H * 0.5 - H * 0.22);
-      wctx.lineTo(W, H * 0.5 - H * 0.22);
-      wctx.stroke();
-      wctx.setLineDash([]);
-      wctx.lineWidth = 1.4;
-      wctx.strokeStyle = "#E2AC55";
+      const n = Math.max(2, Math.floor(W / 1.5));
+      const span = 1.2;
+      wctx.lineWidth = 1.3;
+      wctx.strokeStyle = level === 2 ? "#F6CD82" : "#E2AC55";
       wctx.shadowColor = "rgba(226, 172, 85, 0.7)";
-      wctx.shadowBlur = 6;
+      wctx.shadowBlur = level === 2 ? 8 : 4;
       wctx.beginPath();
-      let cur = 0;
       for (let k = 0; k <= n; k++) {
         const tt = t - span + (k / n) * span;
         const tw = ((tt % T) + T) % T;
-        const v = signal(tw, Math.floor(tt * 200));
-        if (k === n) cur = Math.abs(v);
-        const y = H * 0.5 - Math.max(-1, Math.min(1, v / 1.6)) * H * 0.46;
+        const v = vib(tw, Math.floor(tt * 400));
+        const y = H * 0.5 - clamp(v / 1.6, -1, 1) * H * 0.44;
         k ? wctx.lineTo((k / n) * W, y) : wctx.moveTo(0, y);
       }
       wctx.stroke();
       wctx.shadowBlur = 0;
 
-      peak = t < 0.1 ? 0 : Math.max(peak * 0.999, cur * 2.2);
-      gEl.textContent = fmt(cur * 2.2);
-      pkEl.textContent = fmt(peak);
+      // El sensor tradicional ve casi el mismo número todo el tiempo.
+      rmsEl.textContent = (4.2 + d * 0.3 + (hash(Math.floor(time / 250)) - 0.5) * 0.2).toFixed(1).replace(".", ",");
+      stateEl.textContent = states[level];
+      stateEl.dataset.level = String(level);
+      nodeEl.dataset.level = String(level);
+      alertEl.classList.toggle("is-on", t > 10.8 && t < 15.4);
 
-      // --- fase y modelo ---
-      phaseEl.textContent = phases[ph];
-      phaseEl.dataset.ph = String(ph);
-      for (let k = 1; k <= 4; k++) {
-        const target = ph === k ? 0.86 + hash(Math.floor(time / 300) + k) * 0.12 : 0.02 + hash(Math.floor(time / 400) * k) * 0.12;
-        conf[k] += (target - conf[k]) * 0.08;
-        const el = cls[k - 1];
-        el.style.setProperty("--v", conf[k].toFixed(3));
-        el.classList.toggle("is-top", ph === k);
-        el.querySelector<HTMLElement>(".bw__cval")!.textContent = conf[k].toFixed(2);
+      // --- clasificador ---
+      const target = [1 - d * 0.92, d * 0.84, d * 0.1, d * 0.05];
+      for (let k = 0; k < 4; k++) {
+        conf[k] += (target[k] + (hash(Math.floor(time / 350) + k) - 0.5) * 0.04 - conf[k]) * 0.08;
+      }
+      const top = conf.indexOf(Math.max(...conf));
+      for (let k = 0; k < 4; k++) {
+        const v = clamp(conf[k]);
+        cls[k].style.setProperty("--v", v.toFixed(3));
+        cls[k].querySelector<HTMLElement>(".bw__cval")!.textContent = v.toFixed(2);
+        cls[k].classList.toggle("is-top", top === k);
       }
 
-      // --- partitura: 6 s, "ahora" al 82 % ---
-      const RW = roll.clientWidth,
-        RH = roll.clientHeight;
-      rctx.clearRect(0, 0, RW, RH);
-      const nowX = RW * 0.82;
-      const pxs = (RW * 0.82) / 5;
-      const laneH = RH / 3;
-      for (let l = 0; l < 3; l++) {
-        rctx.fillStyle = l % 2 ? "rgba(255,255,255,0.015)" : "rgba(255,255,255,0.03)";
-        rctx.fillRect(0, l * laneH, RW, laneH);
+      // --- puntaje de anomalía: últimos ~15 s ---
+      const SW = sc.clientWidth,
+        SH = sc.clientHeight;
+      sctx.clearRect(0, 0, SW, SH);
+      const pad = 4;
+      const yOf = (v: number) => SH - pad - v * (SH - pad * 2);
+      sctx.setLineDash([3, 4]);
+      sctx.strokeStyle = "rgba(229, 87, 74, 0.6)";
+      sctx.lineWidth = 1;
+      sctx.beginPath();
+      sctx.moveTo(0, yOf(0.7));
+      sctx.lineTo(SW, yOf(0.7));
+      sctx.stroke();
+      sctx.setLineDash([]);
+      const m = Math.max(2, Math.floor(SW / 3));
+      const nowX = SW * 0.97;
+      sctx.beginPath();
+      for (let k = 0; k <= m; k++) {
+        const x = (k / m) * nowX;
+        const tt = t - (1 - k / m) * T * 0.95;
+        const v = score(((tt % T) + T) % T);
+        k ? sctx.lineTo(x, yOf(v)) : sctx.moveTo(x, yOf(v));
       }
-      const block = (at: number, dur: number, lane: number, row: number, color: string, glow = false) => {
-        let dt = t - at;
-        if (dt < -T / 2) dt += T;
-        if (dt > T / 2) dt -= T;
-        if (dt < 0 || dt > 5.2) return;
-        const x = nowX - dt * pxs;
-        const y = lane * laneH + laneH * 0.18 + (row % 4) * (laneH * 0.16);
-        rctx.fillStyle = color;
-        rctx.shadowColor = glow ? color : "transparent";
-        rctx.shadowBlur = glow ? 8 : 0;
-        rctx.fillRect(x, y, Math.max(3, dur * pxs), laneH * 0.12);
-      };
-      shakes.forEach((sh, k) => block(sh, 0.22, 0, k * 3, "#E2AC55", true));
-      block(strike, 0.5, 0, 1, "#F6CD82", true);
-      taps.forEach((tp, k) => block(tp, 0.14, 1, k * 2, "#8FB8DE"));
-      for (let b = 0; b < T; b += 0.5) {
-        const bp = phaseAt(b);
-        if (bp >= 2 && bp <= 4) block(b, 0.35, 2, Math.floor(b * 2), "rgba(244, 243, 239, 0.28)");
-      }
-      rctx.shadowBlur = 0;
-      rctx.fillStyle = "#F4F3EF";
-      rctx.fillRect(nowX, 0, 1.5, RH);
+      const grad = sctx.createLinearGradient(0, yOf(1), 0, yOf(0));
+      grad.addColorStop(0, "#E5574A");
+      grad.addColorStop(0.35, "#E2AC55");
+      grad.addColorStop(1, "#5BD08A");
+      sctx.strokeStyle = grad;
+      sctx.lineWidth = 2;
+      sctx.stroke();
+      sctx.fillStyle = "#F4F3EF";
+      sctx.beginPath();
+      sctx.arc(nowX, yOf(score(t)), 3.5, 0, Math.PI * 2);
+      sctx.fill();
 
       if (running) raf = requestAnimationFrame(draw);
     };
@@ -247,8 +224,8 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
     if (still) {
       requestAnimationFrame(() => {
         fit(wave, wctx);
-        fit(roll, rctx);
-        draw(9200);
+        fit(sc, sctx);
+        draw(12500);
       });
     } else {
       new IntersectionObserver(([e]) => {
@@ -262,57 +239,83 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
 
 <style>
   .scene--bw {
-    background: #070D18;
+    background: #070d18;
   }
   .bw {
     position: absolute;
     inset: 7.2cqw 0 0 0;
     display: grid;
-    grid-template-rows: 22% minmax(0, 1fr) 25%;
+    grid-template-rows: 21% minmax(0, 1fr) 20%;
     font-size: clamp(7px, 1.08cqw, 12px);
   }
+  .bw__label {
+    color: var(--slate);
+    font-size: 0.9em;
+  }
 
+  /* vibración + lectura comparada */
   .bw__signal {
     position: relative;
     min-height: 0;
     display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: minmax(0, 1fr);
-    align-items: center;
-    gap: 1.5cqw;
-    padding: 0.6cqw 1.6cqw 0.4cqw;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 1.6cqw;
+    padding: 0.8cqw 1.6cqw 0.6cqw;
   }
-  .bw__label {
-    position: absolute;
-    left: 1.6cqw;
-    top: 0.6cqw;
-    color: var(--slate);
-    font-size: 0.9em;
+  .bw__signal .bw__label {
+    grid-column: 1;
   }
   .bw__wave,
-  .bw__rollc {
+  .bw__scorec {
     display: block;
     width: 100%;
     height: 100%;
     min-height: 0;
   }
-  .bw__g {
+  .bw__wave {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .bw__read {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     display: flex;
     flex-direction: column;
-    gap: 0.2em;
-    color: var(--slate);
-    text-align: right;
+    gap: 0.5em;
+    min-width: 17em;
   }
-  .bw__g b {
-    font-size: 1.6em;
+  .bw__read p {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    color: var(--slate);
+  }
+  .bw__read span {
+    font-size: 0.9em;
+    margin-right: auto;
+  }
+  .bw__classic b {
     color: var(--ink);
     font-weight: 500;
+    font-size: 1.3em;
     font-variant-numeric: tabular-nums;
   }
-  .bw__g b.gold {
+  .bw__edge b {
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #5bd08a;
+    transition: color 0.3s ease;
+  }
+  .bw__edge b[data-level="1"] {
     color: var(--gold);
   }
+  .bw__edge b[data-level="2"] {
+    color: #f2a097;
+  }
 
+  /* foto del campo */
   .bw__photo {
     position: relative;
     overflow: hidden;
@@ -321,8 +324,8 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
   .bw__kb {
     position: absolute;
     inset: 0;
-    animation: kenburns 18s ease-in-out infinite alternate;
-    transform-origin: 54% 20%;
+    animation: kenburns 20s ease-in-out infinite alternate;
+    transform-origin: 80% 40%;
   }
   .bw__kb img {
     width: 100%;
@@ -334,103 +337,88 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
       transform: scale(1.02);
     }
     to {
-      transform: scale(1.12) translateX(-1.5%);
+      transform: scale(1.1);
     }
   }
 
-  /* Anillos en la punta de la caña: cada nota que dispara el pez. */
+  .bw__node {
+    position: absolute;
+    left: 80.6%;
+    top: 42%;
+  }
+  .bw__pin {
+    position: absolute;
+    width: 0.9cqw;
+    height: 0.9cqw;
+    min-width: 7px;
+    min-height: 7px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #5bd08a;
+    box-shadow: 0 0 10px rgba(91, 208, 138, 0.9);
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
   .bw__ring {
     position: absolute;
-    left: 53.6%;
-    top: 7%;
-    width: 4cqw;
-    height: 4cqw;
-    margin: -2cqw 0 0 -2cqw;
+    width: 5cqw;
+    height: 5cqw;
+    transform: translate(-50%, -50%) scale(0.2);
     border-radius: 50%;
-    border: 2px solid #8FB8DE;
-    opacity: 0;
-    pointer-events: none;
+    border: 1.5px solid #5bd08a;
+    animation: ring 2.4s ease-out infinite;
   }
-  .bw__ring.is-on {
-    animation: ring 0.9s var(--ease-out) forwards;
+  .bw__ring--2 {
+    animation-delay: 1.2s;
   }
-  .bw__ring.is-big {
+  .bw__node[data-level="1"] .bw__pin {
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(226, 172, 85, 0.9);
+  }
+  .bw__node[data-level="1"] .bw__ring {
     border-color: var(--gold);
-    box-shadow: 0 0 14px rgba(226, 172, 85, 0.8);
+  }
+  .bw__node[data-level="2"] .bw__pin {
+    background: #e5574a;
+    box-shadow: 0 0 14px rgba(229, 87, 74, 0.95);
+  }
+  .bw__node[data-level="2"] .bw__ring {
+    border-color: #e5574a;
+    animation-duration: 1.1s;
   }
   @keyframes ring {
     from {
       opacity: 1;
-      transform: scale(0.4);
+      transform: translate(-50%, -50%) scale(0.2);
     }
     to {
       opacity: 0;
-      transform: scale(2.6);
+      transform: translate(-50%, -50%) scale(1.6);
     }
   }
-  .bw__note {
+  .bw__nodelabel {
     position: absolute;
-    left: 57%;
-    top: 14%;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 5cqw;
-    color: var(--gold);
-    text-shadow: 0 0 20px rgba(226, 172, 85, 0.8);
-    opacity: 0;
-  }
-  .bw__note.is-on {
-    animation: note 0.8s var(--ease-out) forwards;
-  }
-  @keyframes note {
-    0% {
-      opacity: 0;
-      transform: translateY(20%) scale(0.8);
-    }
-    25% {
-      opacity: 1;
-      transform: none;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(-30%);
-    }
-  }
-
-  .bw__phase {
-    position: absolute;
-    left: 1.6cqw;
-    top: 1.2cqw;
-    padding: 0.35em 0.8em 0.35em 1.8em;
-    background: rgba(6, 12, 23, 0.8);
-    border: 1px solid var(--border);
-    border-radius: 999px;
+    left: 80.6%;
+    top: 42%;
+    transform: translate(-115%, -50%);
+    padding: 0.15em 0.5em;
+    font-size: 0.85em;
     color: var(--ink);
-  }
-  .bw__phase::before {
-    content: "";
-    position: absolute;
-    left: 0.7em;
-    top: 50%;
-    width: 0.55em;
-    height: 0.55em;
-    margin-top: -0.275em;
-    border-radius: 50%;
-    background: #8FB8DE;
-  }
-  .bw__phase:is([data-ph="3"], [data-ph="4"])::before {
-    background: var(--gold);
-    box-shadow: 0 0 8px rgba(226, 172, 85, 0.9);
+    background: rgba(6, 12, 23, 0.75);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    white-space: nowrap;
   }
 
   .bw__model {
     position: absolute;
-    right: 1.6cqw;
-    top: 1.2cqw;
+    left: 1.6cqw;
+    bottom: 1.2cqw;
     width: 25cqw;
     min-width: 130px;
     padding: 0.9em 1em;
-    background: rgba(6, 12, 23, 0.84);
+    background: rgba(6, 12, 23, 0.86);
     border: 1px solid var(--border);
     border-radius: 6px;
     display: flex;
@@ -443,7 +431,7 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
   }
   .bw__cls {
     display: grid;
-    grid-template-columns: 5.5em 1fr 2.6em;
+    grid-template-columns: 6.5em 1fr 2.6em;
     align-items: center;
     gap: 0.6em;
     color: var(--slate);
@@ -472,48 +460,65 @@ const notes = es ? ["Mi", "Sol", "La", "Re", "Si"] : ["E", "G", "A", "D", "B"];
     box-shadow: 0 0 8px rgba(226, 172, 85, 0.8);
   }
 
-  .bw__roll {
+  .bw__alert {
+    position: absolute;
+    right: 1.6cqw;
+    bottom: 1.2cqw;
+    width: 36cqw;
+    padding: 0.9em 1.1em;
+    background: rgba(6, 12, 23, 0.9);
+    border: 1px solid rgba(229, 87, 74, 0.7);
+    border-left: 3px solid #e5574a;
+    border-radius: 6px;
+    color: var(--ink);
+    box-shadow: 0 10px 40px -10px rgba(229, 87, 74, 0.5);
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
+  }
+  .bw__alert.is-on {
+    opacity: 1;
+    transform: none;
+  }
+  .bw__atitle {
+    color: #f2a097;
+    font-size: 0.9em;
+    margin-bottom: 0.3em;
+  }
+
+  /* puntaje de anomalía */
+  .bw__score {
     min-height: 0;
     display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.3em;
+    padding: 0.7cqw 1.6cqw 0.8cqw;
   }
-  .bw__lanes {
-    display: grid;
-    grid-template-rows: repeat(3, 1fr);
-    align-items: center;
-    padding-inline: 1.6cqw 1cqw;
-    font-size: 0.9em;
+  .bw__thr {
+    color: #f2a097;
   }
-  .bw__lanes span:nth-child(1) {
-    color: var(--gold);
-  }
-  .bw__lanes span:nth-child(2) {
-    color: #8FB8DE;
-  }
-  .bw__lanes span:nth-child(3) {
-    color: var(--slate);
-  }
-
 
   @container (max-width: 520px) {
-    .bw__model {
-      width: 44cqw;
+    .bw__read {
       min-width: 0;
-      padding: 0.5em 0.6em;
-      gap: 0.25em;
     }
-    .bw__cls {
-      grid-template-columns: 4.6em 1fr;
-    }
-    .bw__cval,
+    .bw__read span,
     .bw__label,
-    .bw__g span:first-child {
+    .bw__model,
+    .bw__nodelabel {
       display: none;
+    }
+    .bw__alert {
+      left: 1.6cqw;
+      width: auto;
+      padding: 0.5em 0.7em;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bw__kb {
+    .bw__kb,
+    .bw__ring {
       animation: none;
     }
   }
