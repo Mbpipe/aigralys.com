@@ -1,5 +1,5 @@
 ---
-import { strings, MAIL, X_URL, type Lang } from "../i18n/strings";
+import { strings, X_URL, type Lang } from "../i18n/strings";
 
 interface Props {
   lang: Lang;
@@ -18,9 +18,9 @@ const year = new Date().getFullYear();
       <p class="footer__tagline mono muted">{t.footer.tagline}</p>
     </div>
 
-    <nav class="footer__links mono" aria-label={t.footer.products}>
-      <a href="#products">{t.footer.products}</a>
-      <a href={`mailto:${MAIL}`}>{MAIL}</a>
+    <nav class="footer__links mono" aria-label="Footer">
+      <a href="#casos">{t.nav.cases}</a>
+      <a href="#contacto">{t.nav.contact}</a>
       <a class="footer__social" href={X_URL} target="_blank" rel="me noopener" aria-label={t.footer.followX}>
         <svg class="footer__x" viewBox="0 0 24 24" aria-hidden="true" focusable="false"
           ><path

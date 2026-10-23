@@ -1,0 +1,78 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="servicios" aria-labelledby="servicios-title">
+  <div class="container">
+    <h2 class="section__title" id="servicios-title">{t.services.heading}</h2>
+    <p class="section__intro">{t.services.intro}</p>
+
+    <ul class="services" role="list">
+      {
+        t.services.items.map((s) => (
+          <li class="service">
+            <h3 class="service__title">{s.title}</h3>
+            <p class="service__body">{s.body}</p>
+            <ul class="service__tags" role="list">
+              {s.examples.map((e) => (
+                <li class="tag">{e}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .services {
+    list-style: none;
+    padding: 0;
+    margin-top: 2.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  @media (min-width: 760px) {
+    .services {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .service {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-block: 1.6rem 1.9rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .service__title {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .service__body {
+    color: var(--slate);
+    max-width: 50ch;
+  }
+
+  .service__tags {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+  }
+</style>

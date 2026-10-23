@@ -6,10 +6,10 @@ export default defineConfig({
   site: 'https://aigralys.com',
   // Sitio estático. JS mínimo.
   compressHTML: true,
-  // Bilingüe: EN por defecto en `/`, ES en `/es`.
+  // Bilingüe: ES por defecto en `/`, EN en `/en/`.
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es'],
+    defaultLocale: 'es',
+    locales: ['es', 'en'],
     routing: {
       prefixDefaultLocale: false,
       redirectToDefaultLocale: false,

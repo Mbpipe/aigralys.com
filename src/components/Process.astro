@@ -1,0 +1,63 @@
+---
+import { strings, type Lang } from "../i18n/strings";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = strings[lang];
+---
+
+<section class="section" id="proceso" aria-labelledby="proceso-title">
+  <div class="container">
+    <h2 class="section__title" id="proceso-title">{t.process.heading}</h2>
+    <ol class="steps" role="list">
+      {
+        t.process.steps.map((s, i) => (
+          <li class="step">
+            <span class="step__num mono" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <h3 class="step__title">{s.title}</h3>
+            <p class="step__body">{s.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  @media (min-width: 760px) {
+    .steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .step__num {
+    color: var(--gold);
+    font-size: 0.95rem;
+  }
+  .step__title {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .step__body {
+    color: var(--slate);
+    max-width: 34ch;
+  }
+</style>

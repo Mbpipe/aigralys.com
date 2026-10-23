@@ -1,4 +1,17 @@
-# CONTEXT — Handoff landing aigralys.com
+# CONTEXT — aigralys.com
+
+## Rediseño IA (2026-10-23) — estado vigente
+- Posicionamiento nuevo: estudio de productos digitales y agentes de IA (servicios + consultoría IA). Reemplaza el "sello de productos propios".
+- Idioma: **ES default en `/`**, EN en `/en/`. `/es/` redirige a `/` (`public/_redirects`).
+- Secciones: Hero (sesión de agente + render Bancor) · Qué hacemos (4 servicios) · Casos (Bancor Arena destacado con selector día/atardecer/noche, clearlit, comolocobro, Bitewave) · Cómo trabajamos · Contacto (form) · Footer.
+- Sin WhatsApp ni precios (decisión del dueño). Contacto solo por formulario.
+- Form: FormSubmit AJAX → `hello@aigralys.com` (Cloudflare Email Routing → Gmail). **El primer envío dispara un mail de activación a hello@: hay que clickear el link.** Campo oculto `origen` toma `utm_source`/`ref` de la URL (QR de Flama: `https://aigralys.com/?utm_source=flama`).
+- Renders de Bancor en `public/work/` (redimensionados desde el repo `Mbpipe/bancor`, OK del cliente para usarlos).
+- Todo el copy vive en `src/i18n/strings.ts`.
+
+---
+
+## Historial (landing v1, junio 2026)
 
 - **Última actualización:** 2026-06-06 11:30 (UTC-3)
 - **Estado actual:** **Página completa en ambos idiomas (EN default `/`, ES `/es`)**, Lighthouse 100 en las 4 categorías (mobile + desktop), commits pusheados a `origin/main`. **PARADO antes del deploy a Cloudflare Pages** (espera OK del dueño).

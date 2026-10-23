@@ -10,6 +10,7 @@
   --ink: #F4F3EF;
   --slate: #7C8A9C;
   --border: #21344A;
+  --panel: #0B1524;
 
   /* Tipografías */
   --mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular,
@@ -17,7 +18,8 @@
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Layout */
-  --maxw: 880px;
+  --maxw: 1120px;
+  --measure: 62ch;
   --gutter: clamp(1.25rem, 5vw, 2.5rem);
 
   color-scheme: dark;
@@ -112,19 +114,6 @@ svg {
   border-top: 1px solid var(--border);
 }
 
-.section__label {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-  color: var(--slate);
-  margin-bottom: 0.9rem;
-}
-
-.section__label::before {
-  content: "// ";
-  color: var(--gold);
-}
-
 .section__title {
   font-family: var(--mono);
   font-size: clamp(1.4rem, 5vw, 2rem);
@@ -132,4 +121,57 @@ svg {
   letter-spacing: -0.01em;
   color: var(--ink);
   line-height: 1.15;
+}
+
+.section__intro {
+  color: var(--slate);
+  font-size: 1.05rem;
+  max-width: 52ch;
+  margin-top: 0.75rem;
+}
+
+/* ---------- botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.btn--primary {
+  color: var(--navy);
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.btn--primary:hover {
+  background: #eab863;
+  border-color: #eab863;
+}
+
+.btn--ghost {
+  color: var(--ink);
+  background: transparent;
+}
+.btn--ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--slate);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.1rem 0.45rem;
 }
