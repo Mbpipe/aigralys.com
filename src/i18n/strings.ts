@@ -61,16 +61,7 @@ type Strings = {
     labels: { problem: string; ai: string; result: string };
     items: Case[];
   };
-  agro: {
-    kicker: string;
-    heading: string;
-    intro: string;
-    compare: { oldLabel: string; oldText: string; newLabel: string; newText: string; note: string };
-    local: string;
-    optional: string;
-    cta: string;
-    items: { title: string; body: string; sensor: string; kind: "audio" | "motion" | "vibration" | "env" | "event"; ai: boolean }[];
-  };
+  agro: { lead: string; items: string[]; cta: string };
   process: { heading: string; steps: { title: string; body: string }[] };
   contact: {
     heading: string;
@@ -171,37 +162,26 @@ export const strings: Record<Lang, Strings> = {
           tags: ["IoT", "Edge AI", "tinyML"],
           problem: "Un sensor tradicional manda números: la bomba vibra a tal intensidad. Alguien tiene que mirarlos, saber qué es normal y darse cuenta a tiempo de que algo cambió.",
           ai: "Bitewave interpreta en el propio dispositivo. Un sensor Seeed Studio con tinyML aprende el patrón habitual de cada máquina y lo compara en tiempo real, sin depender de la conexión ni de la nube.",
-          result: "El aviso ya no dice cuánto vibra, dice qué pasa: el patrón cambió respecto de su funcionamiento habitual. La misma base escucha bombas, motores, silos, ganado o colmenas.",
+          result: "Un sensor tradicional te dice: la bomba vibra a 4,2\u00a0mm/s. Bitewave te dice: el patrón de vibración cambió respecto de su funcionamiento habitual. Esa diferencia es lo que vuelve valiosa la IA en el borde.",
           hud: ["aprendiendo el patrón habitual", "comparando contra lo normal, en el dispositivo", "patrón distinto: aviso enviado"],
         },
       ],
     },
     agro: {
-      kicker: "Bitewave en el campo",
-      heading: "Del sensor que mide al que entiende.",
-      intro: "Un dispositivo que interpreta lo que pasa sirve en cualquier lugar donde algo vibra, suena o cambia. Diez aplicaciones para el agro que podemos construir, con la IA corriendo en el propio dispositivo cuando hace falta.",
-      compare: {
-        oldLabel: "Un sensor tradicional te informa",
-        oldText: "La bomba está vibrando a 4,2\u00a0mm/s.",
-        newLabel: "Un dispositivo con tinyML te informa",
-        newText: "El patrón de vibración cambió respecto de su funcionamiento habitual.",
-        note: "Esa diferencia es lo que vuelve atractiva la combinación de IoT y Edge AI.",
-      },
-      local: "IA en el dispositivo",
-      optional: "IA opcional",
-      cta: "¿Tenés otra en mente? Contanos",
+      lead: "La misma base también escucha",
       items: [
-        { title: "Detección acústica de plagas", body: "Un micrófono en el lote o en el silo reconoce el sonido de los insectos antes de que se vea el daño.", sensor: "micrófono", kind: "audio", ai: true },
-        { title: "Actividad del ganado", body: "Un collar con acelerómetro detecta rumia, celo, cojera o un animal quieto de más.", sensor: "acelerómetro", kind: "motion", ai: true },
-        { title: "Mantenimiento predictivo de maquinaria", body: "La vibración de tractores y cosechadoras avisa antes de que algo se rompa en plena campaña.", sensor: "vibración", kind: "vibration", ai: true },
-        { title: "Funcionamiento de bombas", body: "Encendida, en seco o trabada: la bomba avisa al celular sin que nadie vaya a mirarla.", sensor: "vibración y corriente", kind: "vibration", ai: true },
-        { title: "Monitoreo inteligente de silos", body: "Temperatura, humedad y CO₂ adentro del silo para frenar el deterioro del grano a tiempo.", sensor: "temperatura, humedad, CO₂", kind: "env", ai: false },
-        { title: "Estaciones de humedad de suelo", body: "Sensores baratos en el lote para decidir cuándo y cuánto regar.", sensor: "humedad de suelo", kind: "env", ai: false },
-        { title: "Apertura de tranqueras", body: "Un aviso al celular cada vez que se abre una tranquera lejos del casco.", sensor: "contacto magnético", kind: "event", ai: false },
-        { title: "Monitoreo de colmenas", body: "El sonido y el peso de la colmena anticipan enjambrazón, falta de reina o momento de cosecha.", sensor: "micrófono y balanza", kind: "audio", ai: true },
-        { title: "Anomalías en molinos", body: "Un molino que deja de bombear o se traba se detecta por su vibración, antes de que falte el agua.", sensor: "vibración", kind: "vibration", ai: true },
-        { title: "Actividad de aves", body: "Un micrófono identifica especies y bandadas sobre el cultivo y registra cuándo llegan.", sensor: "micrófono", kind: "audio", ai: true },
+        "detección acústica de plagas",
+        "actividad del ganado",
+        "mantenimiento predictivo de maquinaria",
+        "funcionamiento de bombas",
+        "silos inteligentes",
+        "humedad de suelo",
+        "apertura de tranqueras",
+        "colmenas",
+        "anomalías en molinos",
+        "actividad de aves",
       ],
+      cta: "¿Otra idea? Contanos",
     },
     process: {
       heading: "Cómo trabajamos",
@@ -314,37 +294,26 @@ export const strings: Record<Lang, Strings> = {
           tags: ["IoT", "Edge AI", "tinyML"],
           problem: "A traditional sensor sends numbers: the pump vibrates at this intensity. Someone has to watch them, know what normal looks like and notice in time that something changed.",
           ai: "Bitewave interprets on the device itself. A Seeed Studio sensor with tinyML learns each machine's usual pattern and compares against it in real time, without relying on a connection or the cloud.",
-          result: "The alert no longer says how much it vibrates, it says what's happening: the pattern changed from its usual behavior. The same base listens to pumps, engines, silos, livestock or beehives.",
+          result: "A traditional sensor tells you: the pump is vibrating at 4.2\u00a0mm/s. Bitewave tells you: the vibration pattern has changed from its usual behavior. That difference is what makes AI at the edge worth it.",
           hud: ["learning the usual pattern", "comparing against normal, on the device", "different pattern: alert sent"],
         },
       ],
     },
     agro: {
-      kicker: "Bitewave on the farm",
-      heading: "From sensors that measure to sensors that understand.",
-      intro: "A device that interprets what's happening fits anywhere something vibrates, sounds or changes. Ten farm applications we can build, with the AI running on the device itself when it's needed.",
-      compare: {
-        oldLabel: "A traditional sensor tells you",
-        oldText: "The pump is vibrating at 4.2\u00a0mm/s.",
-        newLabel: "A device with tinyML tells you",
-        newText: "The vibration pattern has changed from its usual behavior.",
-        note: "That difference is what makes IoT plus Edge AI worth it.",
-      },
-      local: "on-device AI",
-      optional: "AI optional",
-      cta: "Have another one in mind? Tell us",
+      lead: "The same base also listens to",
       items: [
-        { title: "Acoustic pest detection", body: "A microphone in the field or the silo recognizes insect sounds before the damage shows.", sensor: "microphone", kind: "audio", ai: true },
-        { title: "Livestock activity", body: "An accelerometer collar detects rumination, heat, lameness or an animal that's been still too long.", sensor: "accelerometer", kind: "motion", ai: true },
-        { title: "Predictive machinery maintenance", body: "Tractor and harvester vibration warns you before something breaks mid-season.", sensor: "vibration", kind: "vibration", ai: true },
-        { title: "Pump monitoring", body: "Running, dry or jammed: the pump pings your phone so nobody has to go check.", sensor: "vibration and current", kind: "vibration", ai: true },
-        { title: "Smart silo monitoring", body: "Temperature, humidity and CO₂ inside the silo to stop grain spoilage in time.", sensor: "temperature, humidity, CO₂", kind: "env", ai: false },
-        { title: "Soil moisture stations", body: "Low-cost sensors in the field to decide when and how much to irrigate.", sensor: "soil moisture", kind: "env", ai: false },
-        { title: "Gate opening alerts", body: "A phone alert every time a gate opens far from the farmhouse.", sensor: "magnetic contact", kind: "event", ai: false },
-        { title: "Beehive monitoring", body: "Hive sound and weight anticipate swarming, a missing queen or harvest time.", sensor: "microphone and scale", kind: "audio", ai: true },
-        { title: "Windmill anomalies", body: "A windmill that stops pumping or jams is caught by its vibration, before the water runs out.", sensor: "vibration", kind: "vibration", ai: true },
-        { title: "Bird activity", body: "A microphone identifies species and flocks over the crop and logs when they arrive.", sensor: "microphone", kind: "audio", ai: true },
+        "acoustic pest detection",
+        "livestock activity",
+        "predictive machinery maintenance",
+        "pump monitoring",
+        "smart silos",
+        "soil moisture",
+        "gate opening alerts",
+        "beehives",
+        "windmill anomalies",
+        "bird activity",
       ],
+      cta: "Another idea? Tell us",
     },
     process: {
       heading: "How we work",
