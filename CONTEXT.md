@@ -13,7 +13,7 @@
 - Contacto con panel y fondo de puntos; números de "Cómo trabajamos" en contorno.
 
 ## v2 (2026-10-23, tarde)
-- Sin menú de servicios: sección abierta "La IA puede…" con frases que se tipean solas + marquee de capacidades. Mensaje: no hay catálogo, se arranca por el problema del cliente.
+- Sin menú de servicios: sección abierta "La IA puede…" con frases que se tipean solas (el marquee de capacidades se sacó por genérico). Mensaje: no hay catálogo, se arranca por el problema del cliente.
 - Hero con campo de partículas animado en canvas (reacciona al mouse, emite pulsos). Título enorme que entra palabra por palabra.
 - Casos como 4 capítulos con el mismo peso (Bancor Arena, clearlit, comolocobro, Bitewave): pantalla fija, texto problema / IA / resultado que avanza con el scroll, pantalla que entra girando y un "registro" del agente que se completa paso a paso.
   - Bancor: render de día → atardecer → noche. clearlit: línea de escaneo, 3 trampas de costo y "USD 800 → 75". comolocobro: barras de métodos de cobro y gana uno. Bitewave: clip del video HUD real (`public/work/bitewave-hud.mp4`, recorte de `bitewave-v2-169.mp4` del vault).

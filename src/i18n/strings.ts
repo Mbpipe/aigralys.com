@@ -53,7 +53,6 @@ type Strings = {
     phrases: string[];
     body: string;
     cta: string;
-    marquee: string[];
   };
   cases: {
     heading: string;
@@ -116,10 +115,6 @@ export const strings: Record<Lang, Strings> = {
       ],
       body: "Agentes, productos digitales, piezas audiovisuales, dispositivos conectados o consultoría. No trabajamos con un catálogo: arrancamos por tu problema, aunque no se parezca a nada de lo que ves acá.",
       cta: "Contanos el tuyo",
-      marquee: [
-        "agentes autónomos", "automatización", "renders 3D", "video generativo", "MCP", "LLMs",
-        "RAG", "visión por computadora", "tinyML", "IoT", "productos digitales", "consultoría IA",
-      ],
     },
     cases: {
       heading: "Casos",
@@ -251,10 +246,6 @@ export const strings: Record<Lang, Strings> = {
       ],
       body: "Agents, digital products, video and visuals, connected devices or consulting. We don't work from a catalog: we start from your problem, even if it looks nothing like what you see here.",
       cta: "Tell us yours",
-      marquee: [
-        "autonomous agents", "automation", "3D renders", "generative video", "MCP", "LLMs",
-        "RAG", "computer vision", "tinyML", "IoT", "digital products", "AI consulting",
-      ],
     },
     cases: {
       heading: "Work",
