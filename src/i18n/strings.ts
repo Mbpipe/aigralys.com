@@ -61,6 +61,15 @@ type Strings = {
     labels: { problem: string; ai: string; result: string };
     items: Case[];
   };
+  agro: {
+    kicker: string;
+    heading: string;
+    intro: string;
+    local: string;
+    optional: string;
+    cta: string;
+    items: { title: string; body: string; sensor: string; kind: "audio" | "motion" | "vibration" | "env" | "event"; ai: boolean }[];
+  };
   process: { heading: string; steps: { title: string; body: string }[] };
   contact: {
     heading: string;
@@ -161,9 +170,29 @@ export const strings: Record<Lang, Strings> = {
           tags: ["IoT", "tinyML", "video generativo"],
           problem: "Los sensores de pesca avisan que algo picó, pero no cuentan nada. Y la señal cruda de una caña es puro ruido: viento, olas, lances.",
           ai: "Un sensor Seeed Studio lee la caña 200 veces por segundo. Un modelo separa lance, recogida, ataque y pelea, y un pipeline generativo convierte cada evento en música y en el video con overlay, armado por código.",
-          result: "Cada pique se vuelve un tema y un video listo para publicar. La misma base, con tinyML en el dispositivo, sirve para mantenimiento predictivo, maquinaria agrícola o cualquier lugar donde una vibración cuenta algo.",
+          result: "Cada pique se vuelve un tema y un video listo para publicar. Y la misma base, con tinyML en el dispositivo, escucha cualquier cosa en el campo: maquinaria, bombas, silos, ganado o colmenas.",
           hud: ["200 lecturas por segundo", "fases: lance, recogida, ataque, pelea", "pique → MIDI → banda → video"],
         },
+      ],
+    },
+    agro: {
+      kicker: "Bitewave, más allá de la pesca",
+      heading: "La misma base, en el campo.",
+      intro: "El sensor y el modelo que escuchan una caña también pueden escuchar un motor, una colmena o un silo. Diez aplicaciones para el agro que podemos construir, con la IA corriendo en el propio dispositivo cuando hace falta.",
+      local: "IA en el dispositivo",
+      optional: "IA opcional",
+      cta: "¿Tenés otra en mente? Contanos",
+      items: [
+        { title: "Detección acústica de plagas", body: "Un micrófono en el lote o en el silo reconoce el sonido de los insectos antes de que se vea el daño.", sensor: "micrófono", kind: "audio", ai: true },
+        { title: "Actividad del ganado", body: "Un collar con acelerómetro detecta rumia, celo, cojera o un animal quieto de más.", sensor: "acelerómetro", kind: "motion", ai: true },
+        { title: "Mantenimiento predictivo de maquinaria", body: "La vibración de tractores y cosechadoras avisa antes de que algo se rompa en plena campaña.", sensor: "vibración", kind: "vibration", ai: true },
+        { title: "Funcionamiento de bombas", body: "Encendida, en seco o trabada: la bomba avisa al celular sin que nadie vaya a mirarla.", sensor: "vibración y corriente", kind: "vibration", ai: true },
+        { title: "Monitoreo inteligente de silos", body: "Temperatura, humedad y CO₂ adentro del silo para frenar el deterioro del grano a tiempo.", sensor: "temperatura, humedad, CO₂", kind: "env", ai: false },
+        { title: "Estaciones de humedad de suelo", body: "Sensores baratos en el lote para decidir cuándo y cuánto regar.", sensor: "humedad de suelo", kind: "env", ai: false },
+        { title: "Apertura de tranqueras", body: "Un aviso al celular cada vez que se abre una tranquera lejos del casco.", sensor: "contacto magnético", kind: "event", ai: false },
+        { title: "Monitoreo de colmenas", body: "El sonido y el peso de la colmena anticipan enjambrazón, falta de reina o momento de cosecha.", sensor: "micrófono y balanza", kind: "audio", ai: true },
+        { title: "Anomalías en molinos", body: "Un molino que deja de bombear o se traba se detecta por su vibración, antes de que falte el agua.", sensor: "vibración", kind: "vibration", ai: true },
+        { title: "Actividad de aves", body: "Un micrófono identifica especies y bandadas sobre el cultivo y registra cuándo llegan.", sensor: "micrófono", kind: "audio", ai: true },
       ],
     },
     process: {
@@ -277,9 +306,29 @@ export const strings: Record<Lang, Strings> = {
           tags: ["IoT", "tinyML", "generative video"],
           problem: "Fishing bite sensors tell you something hit, but nothing more. And a rod's raw signal is mostly noise: wind, waves, casts.",
           ai: "A Seeed Studio sensor reads the rod 200 times a second. A model separates cast, retrieve, strike and fight, and a generative pipeline turns each event into music and into the overlay video, built in code.",
-          result: "Every bite becomes a track and a ready-to-post video. The same base, with tinyML on the device, fits predictive maintenance, farm machinery or anywhere a vibration tells you something.",
+          result: "Every bite becomes a track and a ready-to-post video. And the same base, with tinyML on the device, can listen to anything on a farm: machinery, pumps, silos, livestock or beehives.",
           hud: ["200 readings per second", "phases: cast, retrieve, strike, fight", "bite → MIDI → band → video"],
         },
+      ],
+    },
+    agro: {
+      kicker: "Bitewave, beyond fishing",
+      heading: "The same base, out in the field.",
+      intro: "The sensor and model that listen to a fishing rod can also listen to an engine, a beehive or a silo. Ten farm applications we can build, with the AI running on the device itself when it's needed.",
+      local: "on-device AI",
+      optional: "AI optional",
+      cta: "Have another one in mind? Tell us",
+      items: [
+        { title: "Acoustic pest detection", body: "A microphone in the field or the silo recognizes insect sounds before the damage shows.", sensor: "microphone", kind: "audio", ai: true },
+        { title: "Livestock activity", body: "An accelerometer collar detects rumination, heat, lameness or an animal that's been still too long.", sensor: "accelerometer", kind: "motion", ai: true },
+        { title: "Predictive machinery maintenance", body: "Tractor and harvester vibration warns you before something breaks mid-season.", sensor: "vibration", kind: "vibration", ai: true },
+        { title: "Pump monitoring", body: "Running, dry or jammed: the pump pings your phone so nobody has to go check.", sensor: "vibration and current", kind: "vibration", ai: true },
+        { title: "Smart silo monitoring", body: "Temperature, humidity and CO₂ inside the silo to stop grain spoilage in time.", sensor: "temperature, humidity, CO₂", kind: "env", ai: false },
+        { title: "Soil moisture stations", body: "Low-cost sensors in the field to decide when and how much to irrigate.", sensor: "soil moisture", kind: "env", ai: false },
+        { title: "Gate opening alerts", body: "A phone alert every time a gate opens far from the farmhouse.", sensor: "magnetic contact", kind: "event", ai: false },
+        { title: "Beehive monitoring", body: "Hive sound and weight anticipate swarming, a missing queen or harvest time.", sensor: "microphone and scale", kind: "audio", ai: true },
+        { title: "Windmill anomalies", body: "A windmill that stops pumping or jams is caught by its vibration, before the water runs out.", sensor: "vibration", kind: "vibration", ai: true },
+        { title: "Bird activity", body: "A microphone identifies species and flocks over the crop and logs when they arrive.", sensor: "microphone", kind: "audio", ai: true },
       ],
     },
     process: {
