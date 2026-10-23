@@ -1,5 +1,6 @@
 ---
 import { strings, FORM_ENDPOINT, type Lang } from "../i18n/strings";
+import Words from "./Words.astro";
 
 interface Props {
   lang: Lang;
@@ -12,7 +13,7 @@ const c = t.contact;
 <section class="section" id="contacto" aria-labelledby="contacto-title">
   <div class="container contact">
     <div class="contact__intro">
-      <h2 class="section__title" id="contacto-title">{c.heading}</h2>
+      <Words text={c.heading} class="section__title" id="contacto-title" />
       <p class="section__intro">{c.lede}</p>
     </div>
 
@@ -43,22 +44,14 @@ const c = t.contact;
         </label>
       </div>
 
-      <div class="form__row">
-        <label class="field">
-          <span class="field__label">{c.company}</span>
-          <input class="field__input" type="text" name="empresa" autocomplete="organization" />
-        </label>
-        <label class="field">
-          <span class="field__label">{c.need}</span>
-          <select class="field__input" name="necesidad" required>
-            {c.needOptions.map((o) => <option value={o}>{o}</option>)}
-          </select>
-        </label>
-      </div>
+      <label class="field">
+        <span class="field__label">{c.company}</span>
+        <input class="field__input" type="text" name="empresa" autocomplete="organization" />
+      </label>
 
       <label class="field">
         <span class="field__label">{c.message}</span>
-        <textarea class="field__input field__input--area" name="mensaje" rows="5" placeholder={c.messageHint} required
+        <textarea class="field__input field__input--area" name="mensaje" rows="6" placeholder={c.messageHint} required
         ></textarea>
       </label>
 
@@ -170,17 +163,6 @@ const c = t.contact;
   .field__input--area {
     resize: vertical;
     min-height: 8rem;
-  }
-  select.field__input {
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--slate) 50%),
-      linear-gradient(135deg, var(--slate) 50%, transparent 50%);
-    background-position:
-      calc(100% - 1.1rem) 52%,
-      calc(100% - 0.75rem) 52%;
-    background-size: 0.35rem 0.35rem;
-    background-repeat: no-repeat;
-    padding-right: 2rem;
   }
 
   .form__honey {

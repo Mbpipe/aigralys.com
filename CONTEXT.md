@@ -1,6 +1,15 @@
 # CONTEXT — aigralys.com
 
-## Rediseño IA (2026-10-23) — estado vigente
+## v2 (2026-10-23, tarde) — estado vigente
+- Sin menú de servicios: sección abierta "La IA puede…" con frases que se tipean solas + marquee de capacidades. Mensaje: no hay catálogo, se arranca por el problema del cliente.
+- Hero con campo de partículas animado en canvas (reacciona al mouse, emite pulsos). Título enorme que entra palabra por palabra.
+- Bancor Arena: sección fija que, con el scroll, pasa el render de día a atardecer y a noche, con zoom y el texto problema / IA / resultado.
+- Casos con revelado tipo cortina e inclinación 3D al pasar el mouse; Bitewave dibuja la señal y tiene un cabezal que recorre las notas.
+- Formulario sin selector de servicio (texto libre).
+- Header fijo con blur al bajar; footer con wordmark gigante.
+- Movimiento reducido: todo se muestra estático.
+
+## Rediseño IA (2026-10-23) — v1
 - Posicionamiento nuevo: estudio de productos digitales y agentes de IA (servicios + consultoría IA). Reemplaza el "sello de productos propios".
 - Idioma: **ES default en `/`**, EN en `/en/`. `/es/` redirige a `/` (`public/_redirects`).
 - Secciones: Hero (sesión de agente + render Bancor) · Qué hacemos (4 servicios) · Casos (Bancor Arena destacado con selector día/atardecer/noche, clearlit, comolocobro, Bitewave) · Cómo trabajamos · Contacto (form) · Footer.

@@ -11,12 +11,8 @@ const year = new Date().getFullYear();
 
 <footer class="footer">
   <div class="container footer__inner">
-    <div class="footer__brand">
-      <span class="footer__mark mono"
-        >aigralys<span class="footer__cursor" aria-hidden="true"></span></span
-      >
-      <p class="footer__tagline mono muted">{t.footer.tagline}</p>
-    </div>
+    <p class="footer__giant mono" aria-hidden="true">aigralys<span class="footer__cursor"></span></p>
+    <p class="footer__tagline mono muted">{t.footer.tagline}</p>
 
     <nav class="footer__links mono" aria-label="Footer">
       <a href="#casos">{t.nav.cases}</a>
@@ -41,7 +37,8 @@ const year = new Date().getFullYear();
 <style>
   .footer {
     border-top: 1px solid var(--border);
-    padding-block: clamp(2.5rem, 6vh, 3.5rem);
+    padding-block: clamp(4rem, 12vh, 7rem) clamp(2rem, 5vh, 3rem);
+    overflow: hidden;
   }
 
   .footer__inner {
@@ -50,27 +47,37 @@ const year = new Date().getFullYear();
     gap: 1.25rem;
   }
 
-  .footer__brand {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .footer__mark {
-    font-size: 1rem;
+  .footer__giant {
     font-weight: 700;
+    font-size: clamp(3.6rem, 17.5vw, 15rem);
+    line-height: 0.85;
+    letter-spacing: -0.07em;
     color: var(--ink);
-    display: inline-flex;
-    align-items: center;
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 0.5rem;
   }
 
   .footer__cursor {
+    flex: none;
     display: inline-block;
-    width: 0.45em;
-    height: 0.85em;
-    margin-left: 0.12em;
-    translate: 0 0.05em;
+    width: 0.5em;
+    height: 0.72em;
+    margin-left: 0.04em;
+    margin-bottom: 0.02em;
     background: var(--gold);
+    box-shadow: 0 0 60px 6px rgba(226, 172, 85, 0.35);
+    animation: blink 1.05s step-end infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .footer__cursor {
+      animation: none;
+    }
   }
 
   .footer__tagline {
