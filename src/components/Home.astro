@@ -42,11 +42,23 @@ const sig = (kind: string) => {
     <p class="kicker"><b>aigralys</b> {t.hero.kicker}</p>
     <h1>{t.hero.title}</h1>
     <p class="lede">{t.hero.lede}</p>
-    <div class="cta"><a class="btn b1" href="#contacto">{t.hero.cta}</a><a class="btn b2" href="#bitewave">{t.hero.cta2}</a></div>
+    <div class="cta"><a class="btn b1" href="#contacto">{t.hero.cta}</a><a class="btn b2" href="#casos">{t.hero.cta2}</a></div>
   </div>
   <div class="hero-side">
     <p class="hero-now"><span class="dot"></span><b id="hero-agent">edge-agent</b><span id="hero-say"></span></p>
     <nav class="hero-idx" id="hero-idx" aria-label={t.hero.idx}></nav>
+  </div>
+</section>
+
+<!-- Separador: entrada a los casos -->
+<section class="intro" id="casos" aria-labelledby="casos-title">
+  <div class="intro-in">
+    <p class="kicker"><b>01—05</b></p>
+    <h2 id="casos-title">{t.intro.title}</h2>
+    <p class="lede">{t.intro.sub}</p>
+    <nav class="intro-idx" aria-label={t.hero.idx}>
+      {[["bitewave", "Bitewave"], ["bancor", "Bancor Arena"], ["clearlit", "clearlit"], ["comolocobro", "comolocobro"], ["crm", "CRM"]].map(([id, name], i) => <a href={`#${id}`}><span>0{i + 1}</span>{name}</a>)}
+    </nav>
   </div>
 </section>
 

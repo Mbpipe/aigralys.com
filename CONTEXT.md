@@ -3,7 +3,8 @@
 ## v4 (2026-10-26) — estado vigente: home de agentes en vivo
 - Posicionamiento: "Agentes de IA que trabajan para tu negocio." Un solo tema oscuro (`#121314`), acento maíz `#F2C230`, tipografía Archivo (@fontsource).
 - Estructura (`src/components/Home.astro`, copy ES/EN en `src/i18n/home.ts`):
-  - Hero: nube de puntos en canvas que una línea de escaneo reconstruye en la forma de cada caso, con el agente que trabaja y un índice de casos.
+  - Hero: bajada abierta ("analizamos qué necesita tu negocio y diseñamos el agente a medida"); nube de puntos en canvas que una línea de escaneo reconstruye en la forma de cada caso, con el agente que trabaja y un índice de casos.
+  - Separador "Conocé algunos de nuestros casos de uso" (#casos) con accesos a los 5 casos.
   - 5 casos con la misma gramática: columna con ficha (cliente / problema / qué construimos / resultado) + consola de agente (se autoescribe, chips y pedido escrito libre) + escenario con la demo viva.
     1. Bitewave (`edge-agent`): señal de vibración del aireador del silo, sensor tradicional vs. clasificador en el dispositivo, aviso. Debajo, grilla de 10 aplicaciones agro.
     2. Bancor Arena (`render-agent`, "De una idea a un modelo 3D"): tribuna 3D en tiempo real; el texto aclara que aplica a estructuras grandes, objetos chicos e impresión 3D (STL) (three.js, `public/models/tribuna.glb`, Draco en `public/draco/`), luz, cámara y color de asientos por pedido. three.js se carga recién cerca de la sección (`src/scripts/bancor.js`).

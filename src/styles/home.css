@@ -327,6 +327,17 @@ input[type=range] { width: 100%; accent-color: var(--maiz); }
   .caret, .bw-node { animation: none; }
 }
 
+/* Separador entre el hero y los casos */
+.intro { padding-block: 88px 72px; padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
+.intro-in { display: grid; gap: 18px; }
+.intro h2 { font-size: clamp(32px, 4.4vw, 60px); max-width: 16em; }
+.intro .lede { max-width: 38em; }
+.intro-idx { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.intro-idx a { display: flex; gap: 8px; align-items: baseline; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; text-decoration: none; transition: border-color .2s, color .2s; }
+.intro-idx a span { font-size: 11px; color: var(--dim); }
+.intro-idx a:hover { border-color: var(--maiz); color: var(--maiz); }
+.intro-idx a:focus-visible { outline: 2px solid var(--maiz); outline-offset: 2px; }
+
 /* Grilla agro, debajo de Bitewave */
 .agro { border-top: 1px solid var(--line); padding-block: 56px 64px; padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
 .agro-in { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
@@ -378,7 +389,8 @@ input[type=range] { width: 100%; accent-color: var(--maiz); }
 }
 @media (max-width: 900px) {
   .topbar .lang { margin-left: auto; }
-  .agro, .foot { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .intro { padding-block: 56px 48px; }
+  .agro, .intro, .foot { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   .agro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lead-two { grid-template-columns: 1fr; }
 }
