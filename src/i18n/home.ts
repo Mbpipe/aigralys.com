@@ -24,9 +24,9 @@ const es = {
   hero: {
     kicker: "agentes de IA a medida",
     title: "Agentes de IA que trabajan para tu negocio.",
-    lede: "Diseñamos y construimos agentes que hacen trabajo real: arman escenas 3D, revisan código, calculan, vigilan máquinas y cargan pedidos. Abajo hay cinco funcionando. Probalos.",
+    lede: "Analizamos qué necesita tu negocio y diseñamos el agente a medida: puede generar modelos 3D, revisar código, hacer cálculos, vigilar máquinas, cargar pedidos o lo que tu operación pida.",
     cta: "Contanos tu proyecto",
-    cta2: "Ver los agentes",
+    cta2: "Ver casos de uso",
     idx: "Casos",
     say: {
       bitewave: "escuchando la vibración del aireador del silo 2",
@@ -35,6 +35,10 @@ const es = {
       comolocobro: "comparando cuatro formas de cobrar USD 2.000",
       crm: "cargando un pedido de 2.000 litros de glifosato",
     },
+  },
+  intro: {
+    title: "Conocé algunos de nuestros casos de uso",
+    sub: "Cinco agentes que hicimos, funcionando en vivo. No son videos: tocá los botones o escribile un pedido a cada uno.",
   },
   agent: {
     aria: "Pedido para el agente",
@@ -343,9 +347,9 @@ const en: Home = {
   hero: {
     kicker: "custom AI agents",
     title: "AI agents that work for your business.",
-    lede: "We design and build agents that do real work: they build 3D scenes, review code, run the numbers, watch machines and log orders. Five of them are running below. Try them.",
+    lede: "We look at what your business needs and design the agent to fit: it can generate 3D models, review code, run the numbers, watch machines, log orders or whatever your operation calls for.",
     cta: "Tell us about your project",
-    cta2: "See the agents",
+    cta2: "See use cases",
     idx: "Work",
     say: {
       bitewave: "listening to the silo 2 aerator's vibration",
@@ -354,6 +358,10 @@ const en: Home = {
       comolocobro: "comparing four ways to collect USD 2,000",
       crm: "logging an order for 2,000 liters of glyphosate",
     },
+  },
+  intro: {
+    title: "See some of our use cases",
+    sub: "Five agents we built, running live. They aren't videos: tap the buttons or type a request to any of them.",
   },
   agent: {
     aria: "Request for the agent",
