@@ -44,6 +44,9 @@
   #log li { display: flex; gap: 10px; }
   #log time { color: var(--dim); font-variant-numeric: tabular-nums; flex: none; }
   .nota { color: var(--dim); font-size: 13px; }
+  .aviso { border-color: var(--maiz); background: #2A2514; }
+  .aviso p { margin-top: 4px; color: var(--soft); }
+  .aviso b { color: var(--ink); }
   @media (max-width: 420px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
@@ -53,6 +56,11 @@
     <div class="mark">bitewave<i></i><small>monitor</small></div>
     <button class="main" id="conectar">Conectar</button>
   </header>
+
+  <section class="card aviso" id="aviso" hidden>
+    <span class="lbl">no se puede conectar</span>
+    <p id="avisoTexto"></p>
+  </section>
 
   <section class="card" id="tarjeta">
     <span class="lbl" id="conexion">sin conectar</span>
@@ -85,7 +93,6 @@
     <ul id="log" style="margin-top:8px"></ul>
   </section>
 
-  <p class="nota" id="soporte"></p>
 </main>
 
 <script>
@@ -105,10 +112,12 @@ const $ = (id) => document.getElementById(id);
 const dec = (v, d = 2) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
 let dispositivo = null, chOrden = null, ultimoEstado = null, historia = [], audio = null;
 
-if (!navigator.bluetooth) {
-  $("soporte").textContent = "Este navegador no tiene Bluetooth web. En iPhone abrí esta página con la app Bluefy; en Android o en la compu, con Chrome.";
-  $("conectar").disabled = true;
+function avisar(html) {
+  $("avisoTexto").innerHTML = html;
+  $("aviso").hidden = !html;
 }
+const SIN_BT = "Este navegador no puede usar Bluetooth. <b>En iPhone:</b> instalá la app gratuita Bluefy y abrí esta misma dirección desde ahí. <b>En la Mac o en Android:</b> abrila con Chrome. Safari y los navegadores que se abren dentro de otras apps no sirven.";
+if (!navigator.bluetooth) avisar(SIN_BT);
 
 function anotar(texto) {
   const li = document.createElement("li");
@@ -183,12 +192,24 @@ function dibujar() {
 }
 
 async function conectar() {
+  if (!navigator.bluetooth) { avisar(SIN_BT); return; }
   try {
+    if (navigator.bluetooth.getAvailability && !(await navigator.bluetooth.getAvailability())) {
+      avisar("El Bluetooth de este equipo está apagado o no está disponible. Prendelo y volvé a tocar Conectar.");
+      return;
+    }
+    avisar("");
     dispositivo = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Bitewave" }], optionalServices: [SVC] });
     dispositivo.addEventListener("gattserverdisconnected", desconectado);
     await abrir();
   } catch (e) {
-    if (e && e.name !== "NotFoundError") anotar("No se pudo conectar: " + e.message);
+    if (e && e.name === "NotFoundError") {
+      avisar("No se eligió ninguna placa. Si la lista aparecía vacía: revisá que la placa esté prendida, con el firmware v3 cargado y cerca. Si está conectada a otro celular o a otra pestaña, desconectala de ahí.");
+    } else if (e && e.name === "SecurityError") {
+      avisar("El navegador no dio permiso para usar Bluetooth. Revisá los permisos del sitio y volvé a intentar.");
+    } else {
+      avisar("No se pudo conectar: " + ((e && e.message) || "error desconocido") + ". Apagá y prendé la placa y volvé a intentar.");
+    }
   }
 }
 
