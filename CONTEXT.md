@@ -13,7 +13,8 @@
     5. CRM (`ventas-agent`), caso inventado sin nombre de cliente: bandeja, extracción de pedidos (cliente, producto, cantidad, lugar, urgencia), cotización y seguimiento. Precios de catálogo de referencia, no reales.
   - Pedido escrito: cada demo entiende palabras clave en ES y EN; si no entiende, ofrece "Pedírselo al equipo", que lleva el texto al formulario (campo oculto `demo`).
 - Contacto: FormSubmit AJAX a hello@aigralys.com, campo `origen` desde `utm_source`/`ref`.
-- Lógica de las demos en `src/scripts/home.js`. Movimiento reducido: sin autoplay ni animaciones.
+- Lógica de las demos en `src/scripts/home.js`.
+- `/lab/bitewave/` (public/lab/bitewave/index.html): monitor por Bluetooth del firmware Bitewave v3 (detector), fuera del menú y con noindex. La fuente vive en el repo Mbpipe/bitewave, herramientas/monitor/. Movimiento reducido: sin autoplay ni animaciones.
 
 ## v3 (2026-10-23, noche)
 - Cada caso tiene una escena animada propia, armada con código (no capturas): `src/components/scenes/`.

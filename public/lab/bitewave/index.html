@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#121314">
+<title>Bitewave monitor</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #121314; --panel: #1B1C1E; --line: #2C2E31; --ink: #EDEDEA; --soft: #C9CAC6; --dim: #8B8D90;
+    --maiz: #F2C230; --good: #5BD08A; --bad: #E5574A;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); }
+  main { max-width: 560px; margin: 0 auto; display: grid; gap: 12px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 4px 8px; }
+  .mark { font-weight: 800; font-size: 20px; letter-spacing: -0.03em; }
+  .mark i { display: inline-block; width: .42em; height: .78em; background: var(--maiz); margin-left: 3px; vertical-align: -1px; }
+  .mark small { font-weight: 400; color: var(--dim); font-size: 14px; letter-spacing: 0; margin-left: 6px; }
+  button { font: inherit; cursor: pointer; border-radius: 999px; padding: 10px 16px; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+  button.main { background: var(--maiz); color: #121314; border: 0; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .lbl { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); }
+  #estado { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-top: 4px; }
+  #pista { color: var(--soft); margin-top: 4px; min-height: 1.4em; }
+  .prog { height: 6px; background: var(--bg); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--maiz); transition: width .4s; }
+  .card.alerta { border-color: var(--bad); background: #2A1C1A; }
+  .card.alerta #estado { color: var(--bad); }
+  .meter { display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 12px; align-items: center; margin-top: 10px; }
+  .bar { position: relative; height: 10px; background: var(--bg); border-radius: 5px; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 5px; background: var(--good); transition: width .3s, background .3s; }
+  .bar em { position: absolute; top: -5px; bottom: -5px; left: 70%; width: 2px; background: var(--ink); }
+  #anom { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  canvas { width: 100%; height: 140px; display: block; margin-top: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .stats b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .acc { display: flex; flex-wrap: wrap; gap: 8px; }
+  #log { list-style: none; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--soft); max-height: 220px; overflow: auto; }
+  #log li { display: flex; gap: 10px; }
+  #log time { color: var(--dim); font-variant-numeric: tabular-nums; flex: none; }
+  .nota { color: var(--dim); font-size: 13px; }
+  @media (max-width: 420px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="mark">bitewave<i></i><small>monitor</small></div>
+    <button class="main" id="conectar">Conectar</button>
+  </header>
+
+  <section class="card" id="tarjeta">
+    <span class="lbl" id="conexion">sin conectar</span>
+    <p id="estado">Prendé la placa y tocá Conectar</p>
+    <p id="pista"></p>
+    <div class="prog" id="progWrap" hidden><i id="prog"></i></div>
+    <div class="meter"><div class="bar"><i id="barra"></i><em></em></div><span id="anom">0,00</span></div>
+    <canvas id="grafico"></canvas>
+    <p class="nota">Puntaje de anomalía de los últimos 3 minutos. La línea marca el umbral (0,70).</p>
+  </section>
+
+  <section class="card stats">
+    <div><span class="lbl">intensidad</span><b id="rms">–</b></div>
+    <div><span class="lbl">frecuencia</span><b id="frec">–</b></div>
+    <div><span class="lbl">batería</span><b id="bat">–</b></div>
+    <div><span class="lbl">temperatura</span><b id="temp">–</b></div>
+  </section>
+
+  <section class="card">
+    <span class="lbl">aprender lo normal</span>
+    <p class="nota" style="margin:6px 0 10px">Con la máquina andando como siempre. La placa aprende y después calibra el umbral sola.</p>
+    <div class="acc">
+      <button id="aprender" disabled>Aprender de nuevo (4 min)</button>
+      <button id="rapido" disabled>Rápido, para probar (1,5 min)</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <span class="lbl">registro</span>
+    <ul id="log" style="margin-top:8px"></ul>
+  </section>
+
+  <p class="nota" id="soporte"></p>
+</main>
+
+<script>
+const SVC = "4b1e7a00-2f6c-4d8e-9b3a-7c5e1f0a9d10";
+const CH_ESTADO = "4b1e7a01-2f6c-4d8e-9b3a-7c5e1f0a9d10";
+const CH_ORDEN = "4b1e7a02-2f6c-4d8e-9b3a-7c5e1f0a9d10";
+const ESTADOS = { 0: "Aprendiendo lo normal", 1: "Calibrando el umbral", 2: "Vigilando: todo normal", 3: "Cambió la vibración", 9: "En pausa por calor" };
+const PISTAS = {
+  0: "",
+  1: "Cambió la vibración lenta: giro, desbalance o carga.",
+  2: "Aparecieron golpes o vibración aguda: rodamiento, roce o algo suelto.",
+  3: "Cambió la velocidad de giro.",
+  4: "Bajó la vibración: se detuvo o cambió la carga.",
+  5: "Subió la vibración en general.",
+};
+const $ = (id) => document.getElementById(id);
+const dec = (v, d = 2) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
+let dispositivo = null, chOrden = null, ultimoEstado = null, historia = [], audio = null;
+
+if (!navigator.bluetooth) {
+  $("soporte").textContent = "Este navegador no tiene Bluetooth web. En iPhone abrí esta página con la app Bluefy; en Android o en la compu, con Chrome.";
+  $("conectar").disabled = true;
+}
+
+function anotar(texto) {
+  const li = document.createElement("li");
+  const t = new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  li.innerHTML = `<time>${t}</time><span></span>`;
+  li.querySelector("span").textContent = texto;
+  $("log").prepend(li);
+}
+
+function pitido() {
+  try {
+    audio = audio || new AudioContext();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = 880; g.gain.value = 0.15;
+    o.connect(g).connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + 0.25);
+  } catch {}
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+function mostrar(dv) {
+  const estado = dv.getUint8(1), progreso = dv.getUint8(2), pista = dv.getUint8(3);
+  const anomalia = dv.getUint16(4, true) / 1000;
+  const rms = dv.getUint16(10, true), frec = dv.getUint16(12, true) / 10;
+  const bat = dv.getUint16(14, true) / 1000, temp = dv.getInt8(16);
+  const vigila = estado === 2 || estado === 3;
+
+  $("estado").textContent = (ESTADOS[estado] || "–") + (estado <= 1 ? ` ${progreso} %` : "");
+  $("pista").textContent = estado === 3 ? PISTAS[pista] || "" : estado <= 1 ? "Dejá la máquina andando normal mientras tanto." : "";
+  $("tarjeta").classList.toggle("alerta", estado === 3);
+  $("progWrap").hidden = estado > 1;
+  $("prog").style.width = progreso + "%";
+  $("anom").textContent = vigila ? dec(anomalia) : "–";
+  $("barra").style.width = (vigila ? anomalia * 100 : 0) + "%";
+  $("barra").style.background = anomalia >= 0.7 ? "var(--bad)" : anomalia >= 0.5 ? "var(--maiz)" : "var(--good)";
+  $("rms").textContent = rms + " mg";
+  $("frec").textContent = dec(frec, 1) + " Hz";
+  $("bat").textContent = bat >= 4.15 ? "USB" : dec(bat, 2) + " V";
+  $("temp").textContent = temp + " °C";
+
+  if (ultimoEstado !== null && estado !== ultimoEstado) {
+    if (estado === 3) { anotar("Aviso: " + (PISTAS[pista] || "cambió la vibración")); pitido(); }
+    else if (ultimoEstado === 3) anotar("Volvió a lo normal");
+    else if (estado === 2 && ultimoEstado === 1) anotar("Listo: aprendió lo normal y está vigilando");
+    else if (estado === 9) anotar("Pausa por calor (más de 50 °C)");
+    else if (estado === 0) anotar("Aprendiendo de nuevo");
+  }
+  ultimoEstado = estado;
+  if (vigila) {
+    historia.push(anomalia);
+    if (historia.length > 280) historia.shift();
+  }
+  dibujar();
+}
+
+function dibujar() {
+  const c = $("grafico"), r = c.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+  c.width = r.width * d; c.height = r.height * d;
+  const g = c.getContext("2d"); g.scale(d, d);
+  const w = r.width, h = r.height, Y = (v) => h - 4 - Math.min(v, 1) * (h - 8);
+  g.strokeStyle = "#2C2E31"; g.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach((v) => { g.beginPath(); g.moveTo(0, Y(v) + 0.5); g.lineTo(w, Y(v) + 0.5); g.stroke(); });
+  g.strokeStyle = "#EDEDEA"; g.setLineDash([4, 4]);
+  g.beginPath(); g.moveTo(0, Y(0.7)); g.lineTo(w, Y(0.7)); g.stroke(); g.setLineDash([]);
+  if (historia.length < 2) return;
+  const X = (i) => w - (historia.length - 1 - i) * (w / 279);
+  g.lineWidth = 2;
+  for (let i = 1; i < historia.length; i++) {
+    g.strokeStyle = historia[i] >= 0.7 ? "#E5574A" : "#F2C230";
+    g.beginPath(); g.moveTo(X(i - 1), Y(historia[i - 1])); g.lineTo(X(i), Y(historia[i])); g.stroke();
+  }
+}
+
+async function conectar() {
+  try {
+    dispositivo = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Bitewave" }], optionalServices: [SVC] });
+    dispositivo.addEventListener("gattserverdisconnected", desconectado);
+    await abrir();
+  } catch (e) {
+    if (e && e.name !== "NotFoundError") anotar("No se pudo conectar: " + e.message);
+  }
+}
+
+async function abrir() {
+  $("conexion").textContent = "conectando…";
+  const srv = await dispositivo.gatt.connect();
+  const svc = await srv.getPrimaryService(SVC);
+  const ch = await svc.getCharacteristic(CH_ESTADO);
+  chOrden = await svc.getCharacteristic(CH_ORDEN);
+  ch.addEventListener("characteristicvaluechanged", (e) => mostrar(e.target.value));
+  await ch.startNotifications();
+  mostrar(await ch.readValue());
+  $("conexion").textContent = "conectado a " + (dispositivo.name || "Bitewave");
+  $("conectar").textContent = "Conectado";
+  $("conectar").disabled = true;
+  $("aprender").disabled = $("rapido").disabled = false;
+  anotar("Conectado");
+}
+
+async function desconectado() {
+  $("conexion").textContent = "se cortó: reintentando…";
+  $("aprender").disabled = $("rapido").disabled = true;
+  anotar("Se cortó la conexión");
+  for (let i = 0; i < 5; i++) {
+    await new Promise((r) => setTimeout(r, 1500));
+    try { await abrir(); return; } catch {}
+  }
+  $("conexion").textContent = "sin conectar";
+  $("conectar").textContent = "Conectar";
+  $("conectar").disabled = false;
+}
+
+async function ordenar(n) {
+  if (!chOrden) return;
+  historia = [];
+  try { await chOrden.writeValueWithoutResponse(new Uint8Array([n])); } catch { await chOrden.writeValue(new Uint8Array([n])); }
+}
+
+$("conectar").addEventListener("click", conectar);
+$("aprender").addEventListener("click", () => ordenar(1));
+$("rapido").addEventListener("click", () => ordenar(2));
+addEventListener("resize", dibujar);
+dibujar();
+</script>
+</body>
+</html>
