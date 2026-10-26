@@ -1,0 +1,299 @@
+---
+// Home de agentes: hero animado + cinco casos con demos vivas manejadas por un agente.
+// Los textos que usan los scripts viajan en #i18n (JSON).
+import { home, FORM_ENDPOINT, MAIL, type Lang } from "../i18n/home";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = home[lang];
+const L = t.labels;
+const fichaLabels = [L.client, L.problem, L.built, L.result];
+const bw = t.bitewave, bc = t.bancor, cl = t.clearlit, cc = t.comolocobro, crm = t.crm;
+
+// Firma de señal por tipo de sensor para la grilla agro (SVG 120×36, determinística).
+let seed = 11;
+const rnd = () => {
+  seed = (seed * 16807) % 2147483647;
+  return (seed - 1) / 2147483646;
+};
+const sig = (kind: string) => {
+  const pts: string[] = [];
+  for (let x = 0; x <= 240; x += 2) {
+    let y = 18;
+    if (kind === "audio") y += (rnd() - 0.5) * 22 * (0.4 + 0.6 * Math.abs(Math.sin(x / 19)));
+    if (kind === "motion") y += Math.sin(x / 9) * 4 + (Math.floor(x / 30) % 3 === 1 ? Math.sin(x / 2) * 9 : 0);
+    if (kind === "vibration") y += Math.sin(x * 0.9) * 12 * Math.exp(-((x % 60) / 18));
+    if (kind === "env") y += Math.sin(x / 26) * 9 + Math.sin(x / 11) * 2;
+    if (kind === "event") y += Math.floor(x / 40) % 3 === 1 ? -10 : 8;
+    pts.push(`${x / 2},${y.toFixed(1)}`);
+  }
+  return pts.join(" ");
+};
+---
+
+<script type="application/json" id="i18n" set:html={JSON.stringify({ lang, ...t })} />
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <canvas id="hero-c" aria-hidden="true"></canvas>
+  <div class="hero-in">
+    <p class="kicker"><b>aigralys</b> {t.hero.kicker}</p>
+    <h1>{t.hero.title}</h1>
+    <p class="lede">{t.hero.lede}</p>
+    <div class="cta"><a class="btn b1" href="#contacto">{t.hero.cta}</a><a class="btn b2" href="#bitewave">{t.hero.cta2}</a></div>
+  </div>
+  <div class="hero-side">
+    <p class="hero-now"><span class="dot"></span><b id="hero-agent">edge-agent</b><span id="hero-say"></span></p>
+    <nav class="hero-idx" id="hero-idx" aria-label={t.hero.idx}></nav>
+  </div>
+</section>
+
+<!-- 01 Bitewave -->
+<section class="case" id="bitewave">
+  <aside class="side">
+    <p class="kicker"><b>01</b> {bw.kicker}</p>
+    <h2>{bw.title}</h2>
+    <p class="lede" set:html={bw.lede} />
+    <dl class="ficha">{bw.ficha.map((v, i) => <div><dt>{fichaLabels[i]}</dt><dd set:html={v} /></div>)}</dl>
+    <div class="console">
+      <div class="c-head"><span class="dot"></span>edge-agent <span class="sub">{bw.con.sub}</span></div>
+      <div class="c-log" aria-live="polite"></div>
+      <form class="c-input" autocomplete="off"><input type="text" aria-label={t.agent.aria} enterkeyhint="send" /><button class="send" type="submit" aria-label={t.agent.send}>↵</button></form>
+      <div class="chips"></div>
+    </div>
+  </aside>
+  <div class="stage ui-stage">
+    <div class="vtag"><b>Bitewave</b> / {bw.vtag}</div>
+    <div class="ui">
+      <div class="card bw-field" id="bw-field">
+        <img src="/work/bitewave-campo.webp" alt={bw.imgAlt} width="1748" height="560" loading="lazy" decoding="async" />
+        <span class="bw-node" id="bw-node"></span>
+        <span class="bw-tag" id="bw-tag" set:html={bw.node} />
+        <span class="bw-meta">{bw.nodeMeta}</span>
+      </div>
+      <div class="bw-grid">
+        <div class="card bw-sig">
+          <div class="row"><span class="lbl">{bw.sigLbl}</span><span class="dim" style="font-size:12px">{bw.sigSub}</span></div>
+          <canvas id="bw-canvas"></canvas>
+          <div class="seg" id="bw-modes" style="justify-self:start;flex-wrap:wrap">
+            {Object.entries(bw.modes).map(([k, v], i) => <button type="button" data-m={k} class={i === 0 ? "on" : undefined}>{v}</button>)}
+          </div>
+        </div>
+        <div class="bw-side">
+          <div class="card bw-trad" id="bw-trad"><span class="lbl">{bw.tradLbl}</span><b id="bw-rms">2,1 mm/s</b><span class="okt">{bw.tradOk}</span></div>
+          <div class="card bw-ai" id="bw-ai">
+            <span class="lbl">{bw.aiLbl}</span>
+            <b id="bw-diag">{bw.diag.normal}</b>
+            <div class="meter"><span class="dim">{bw.anomaly}</span><div class="bar"><i id="bw-score" style="width:12%"></i><em></em></div><b id="bw-scorev">0,12</b></div>
+            <ul class="probs" id="bw-probs"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="toast" id="bw-toast" hidden><span class="tdot"></span><div><span id="bw-tmsg"></span><small>{bw.toastSub}</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="agro" aria-labelledby="agro-title">
+  <div class="agro-in">
+    <div class="agro-head">
+      <div>
+        <h3 id="agro-title">{t.agro.lead}</h3>
+        <p>{t.agro.sub}</p>
+      </div>
+      <a class="agro-cta" href="#contacto">{t.agro.cta}</a>
+    </div>
+    <ul class="agro-grid" role="list">
+      {
+        t.agro.items.map((it) => (
+          <li class="agro-card">
+            <svg class="agro-sig" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">
+              <polyline points={sig(it.kind)} />
+            </svg>
+            <p class="agro-name">{it.n}</p>
+            <p class="agro-meta">
+              <span>{it.s}</span>
+              <span class:list={["agro-ai", { on: it.ai }]}>{it.ai ? t.agro.local : t.agro.optional}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<!-- 02 Bancor -->
+<section class="case" id="bancor">
+  <aside class="side">
+    <p class="kicker"><b>02</b> {bc.kicker}</p>
+    <h2>{bc.title}</h2>
+    <p class="lede" set:html={bc.lede} />
+    <dl class="ficha">{bc.ficha.map((v, i) => <div><dt>{fichaLabels[i]}</dt><dd set:html={v} /></div>)}</dl>
+    <div class="console">
+      <div class="c-head"><span class="dot"></span>render-agent <span class="sub">{bc.con.sub}</span></div>
+      <div class="c-log" aria-live="polite"></div>
+      <form class="c-input" autocomplete="off"><input type="text" aria-label={t.agent.aria} enterkeyhint="send" /><button class="send" type="submit" aria-label={t.agent.send}>↵</button></form>
+      <div class="chips"></div>
+    </div>
+  </aside>
+  <div class="stage">
+    <div class="stick">
+      <div id="viewer"><p class="loading3d" id="loading3d">{bc.loading}</p></div>
+      <div class="vtag"><b>Bancor Arena</b><br /><Fragment set:html={bc.vtag} /></div>
+      <div class="status"><span>{bc.st.light} <b id="st-light">{bc.modeNames.noche}</b></span><span>{bc.st.cam} <b id="st-cam">3/4</b></span><span>fps <b id="st-fps">60</b></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 clearlit -->
+<section class="case" id="clearlit">
+  <aside class="side">
+    <p class="kicker"><b>03</b> {cl.kicker}</p>
+    <h2>{cl.title}</h2>
+    <p class="lede" set:html={cl.lede} />
+    <dl class="ficha">{cl.ficha.map((v, i) => <div><dt>{fichaLabels[i]}</dt><dd set:html={v} /></div>)}</dl>
+    <div class="console">
+      <div class="c-head"><span class="dot"></span>cost-agent <span class="sub">{cl.con.sub}</span></div>
+      <div class="c-log" aria-live="polite"></div>
+      <form class="c-input" autocomplete="off"><input type="text" aria-label={t.agent.aria} enterkeyhint="send" /><button class="send" type="submit" aria-label={t.agent.send}>↵</button></form>
+      <div class="chips"></div>
+    </div>
+  </aside>
+  <div class="stage ui-stage">
+    <div class="vtag"><b>clearlit</b> / {cl.vtag}</div>
+    <div class="ui">
+      <div class="card cl-head row">
+        <div><span class="lbl">{cl.appLbl}</span><div style="margin-top:4px"><b>{cl.app}</b><span class="dim">{cl.stack}</span></div></div>
+        <div class="seg" id="cl-plat"><button type="button" data-p="lovable" class="on">Lovable</button><button type="button" data-p="bolt">Bolt</button><button type="button" data-p="v0">v0</button></div>
+      </div>
+      <div class="cl-grid">
+        <div class="card cl-chart">
+          <div class="row"><span class="lbl">{cl.chartLbl}</span><span class="legend"><span><i style="background:var(--bad)"></i>{cl.today}</span><span><i style="background:var(--good)"></i>{cl.withFix}</span></span></div>
+          <canvas id="cl-canvas"></canvas>
+          <label class="slider"><span>{cl.users} <b id="cl-u">25.000</b></span><input type="range" id="cl-users" min="1" max="50" step="1" value="25" aria-label={cl.usersAria} /></label>
+        </div>
+        <div class="cl-nums">
+          <div class="card num"><span class="lbl">{cl.today}</span><b class="c-bad" id="cl-now">USD 800</b><span class="dim">{cl.perMonth}</span></div>
+          <div class="card num"><span class="lbl">{cl.withFix}</span><b class="c-good" id="cl-fix">USD 75</b><span class="dim">{cl.perMonth}</span></div>
+          <div class="card num"><span class="lbl">{cl.yearly}</span><b id="cl-save">USD 8.700</b></div>
+        </div>
+      </div>
+      <div class="card" id="cl-find">
+        <div class="row"><span class="lbl">{cl.traps}</span><span class="dim" id="cl-scan">{cl.found}</span></div>
+        <ul class="cl-list" id="cl-list"></ul>
+      </div>
+      <div class="card cl-fixp" id="cl-fixp" hidden>
+        <span class="lbl" id="cl-fixlbl"></span>
+        <pre id="cl-prompt"></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 comolocobro -->
+<section class="case" id="comolocobro">
+  <aside class="side">
+    <p class="kicker"><b>04</b> {cc.kicker}</p>
+    <h2>{cc.title}</h2>
+    <p class="lede" set:html={cc.lede} />
+    <dl class="ficha">{cc.ficha.map((v, i) => <div><dt>{fichaLabels[i]}</dt><dd set:html={v} /></div>)}</dl>
+    <div class="console">
+      <div class="c-head"><span class="dot"></span>cobro-agent <span class="sub">{cc.con.sub}</span></div>
+      <div class="c-log" aria-live="polite"></div>
+      <form class="c-input" autocomplete="off"><input type="text" aria-label={t.agent.aria} enterkeyhint="send" /><button class="send" type="submit" aria-label={t.agent.send}>↵</button></form>
+      <div class="chips"></div>
+    </div>
+  </aside>
+  <div class="stage ui-stage">
+    <div class="vtag"><b>comolocobro</b> / {cc.vtag}</div>
+    <div class="ui">
+      <div class="card cc-head">
+        <div class="cc-amt"><span class="lbl">{cc.amtLbl}</span><b id="cc-amt">USD 2.000</b><input type="range" id="cc-range" min="500" max="10000" step="100" value="2000" aria-label={cc.amtAria} /></div>
+        <div class="cc-ctx">
+          <div class="pills">{cc.pills.map((p) => <span class="pill">{p}</span>)}</div>
+          <span class="tick">{cc.mep} <b id="cc-mep"></b><i id="cc-var" class="c-good"></i></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row"><span class="lbl">{cc.routesLbl}</span><div class="seg" id="cc-cur"><button type="button" data-c="usd" class="on">{cc.usd}</button><button type="button" data-c="ars">{cc.ars}</button></div></div>
+        <ul class="cc-list" id="cc-list"></ul>
+      </div>
+      <div class="cc-sum">
+        <div class="card num"><span class="lbl">{cc.keepBest}</span><b class="c-good" id="cc-best"></b><span class="dim" id="cc-bestname"></span></div>
+        <div class="card num"><span class="lbl">{cc.vsWorst}</span><b id="cc-diff"></b><span class="dim" id="cc-diffsub"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 CRM -->
+<section class="case" id="crm">
+  <aside class="side">
+    <p class="kicker"><b>05</b> {crm.kicker}</p>
+    <h2>{crm.title}</h2>
+    <p class="lede" set:html={crm.lede} />
+    <dl class="ficha">{crm.ficha.map((v, i) => <div><dt>{fichaLabels[i]}</dt><dd set:html={v} /></div>)}</dl>
+    <div class="console">
+      <div class="c-head"><span class="dot"></span>{crm.con.name} <span class="sub">{crm.con.sub}</span></div>
+      <div class="c-log" aria-live="polite"></div>
+      <form class="c-input" autocomplete="off"><input type="text" aria-label={t.agent.aria} enterkeyhint="send" /><button class="send" type="submit" aria-label={t.agent.send}>↵</button></form>
+      <div class="chips"></div>
+    </div>
+  </aside>
+  <div class="stage ui-stage">
+    <div class="vtag"><b>CRM</b> / {crm.vtag}</div>
+    <div class="ui">
+      <div class="crm-top">
+        <div class="card inbox">
+          <div class="row"><span class="lbl">{crm.inbox}</span><span class="dim" id="crm-unread" style="font-size:12px"></span></div>
+          <ul id="crm-inbox"></ul>
+        </div>
+        <div class="card crm-lead">
+          <div class="row"><span class="lbl">{crm.opp}</span><span class="dim" id="crm-owner" style="font-size:12px"></span></div>
+          <div class="fields" id="crm-fields"><p class="dim" style="grid-column:1/-1">{crm.empty}</p></div>
+          <div id="crm-draft" hidden><span class="lbl">{crm.draftLbl}</span><pre id="crm-draft-t"></pre></div>
+        </div>
+      </div>
+      <div class="pipe" id="crm-pipe"></div>
+      <div class="legend" style="justify-content:flex-end">
+        <span><i style="background:var(--bad)"></i>{crm.legend.caliente}</span><span><i style="background:var(--maiz)"></i>{crm.legend.tibio}</span><span><i style="background:var(--cold)"></i>{crm.legend.frio}</span><span><i style="background:var(--good)"></i>{crm.legend.ganada}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contacto -->
+<section class="close" id="contacto">
+  <div class="close-in">
+    <div class="close-txt">
+      <h2>{t.contact.title}</h2>
+      <p class="lede">{t.contact.lede}</p>
+      <p class="mail">{MAIL}</p>
+    </div>
+    <form class="lead" id="lead" action={FORM_ENDPOINT} method="POST" data-sending={t.contact.sending} data-ok={t.contact.ok} data-error={t.contact.error}>
+      <input type="hidden" name="_subject" value={t.contact.subject} />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="idioma" value={lang} />
+      <input type="hidden" name="origen" value="directo" data-origin />
+      <input type="hidden" name="demo" value="" data-demo />
+      <input class="lead-honey" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <label><span class="lbl">{t.contact.project}</span><textarea id="lead-msg" name="mensaje" rows="4" placeholder={t.contact.hint} required></textarea></label>
+      <div class="lead-two">
+        <label><span class="lbl">{t.contact.name}</span><input type="text" name="nombre" autocomplete="name" required /></label>
+        <label><span class="lbl">{t.contact.email}</span><input type="email" name="email" autocomplete="email" required /></label>
+      </div>
+      <label><span class="lbl">{t.contact.company}</span><input type="text" name="empresa" autocomplete="organization" /></label>
+      <div class="lead-actions">
+        <button class="btn b1" type="submit">{t.contact.submit}</button>
+        <p class="lead-status" role="status" aria-live="polite" data-status></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  import "../scripts/home.js";
+</script>
