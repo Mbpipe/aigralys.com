@@ -1,0 +1,101 @@
+---
+import "@fontsource/archivo/400.css";
+import "@fontsource/archivo/500.css";
+import "@fontsource/archivo/800.css";
+import "../styles/home.css";
+import { home, languages, localeTag, localeHref, MAIL, X_URL, type Lang } from "../i18n/home";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = home[lang];
+const site = "https://aigralys.com";
+const canonical = lang === "es" ? `${site}/` : `${site}/en/`;
+const ogImage = `${site}/og.png`;
+const cases = [
+  ["bitewave", "Bitewave"],
+  ["bancor", "Bancor"],
+  ["clearlit", "clearlit"],
+  ["comolocobro", "comolocobro"],
+  ["crm", "CRM"],
+];
+---
+
+<!doctype html>
+<html lang={localeTag[lang]}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#121314" />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="es" href={`${site}/`} />
+    <link rel="alternate" hreflang="en" href={`${site}/en/`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}/`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Aigralys",
+        url: site,
+        logo: `${site}/favicon.svg`,
+        image: ogImage,
+        email: MAIL,
+        description: t.meta.description,
+        sameAs: [X_URL],
+        knowsAbout: ["AI agents", "AI consulting", "MCP", "3D rendering", "IoT", "Edge AI", "tinyML", "CRM automation"],
+      })}
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="aigralys" />
+    <meta property="og:locale" content={lang === "en" ? "en_US" : "es_AR"} />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={t.meta.title} />
+    <meta name="twitter:description" content={t.meta.description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body>
+    <a class="skip" href="#main">{t.skip}</a>
+    <header class="topbar">
+      <a class="mark" href={localeHref[lang]}>aigralys<i></i></a>
+      <nav aria-label={t.nav.aria}>
+        {cases.map(([id, name]) => <a href={`#${id}`}>{name}</a>)}
+        <a href="#contacto"><b>{t.nav.contact}</b></a>
+      </nav>
+      <nav class="lang" aria-label="Language">
+        {
+          (Object.entries(languages) as [Lang, string][]).map(([code, label]) => (
+            <a href={localeHref[code]} hreflang={code} aria-current={code === lang ? "true" : undefined}>
+              {label}
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="foot">
+      <div class="foot-in">
+        <span><a class="mark" href={localeHref[lang]}>aigralys<i></i></a></span>
+        <span>{t.footer.tagline}</span>
+        <nav aria-label="Footer">
+          <a href={`mailto:${MAIL}`}>{MAIL}</a>
+          <a href={X_URL} target="_blank" rel="me noopener" aria-label={t.footer.followX}>@aigralys</a>
+          <a href="#top">{t.footer.top}</a>
+        </nav>
+        <span>© {new Date().getFullYear()} aigralys</span>
+      </div>
+    </footer>
+  </body>
+</html>

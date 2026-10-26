@@ -1,6 +1,20 @@
 # CONTEXT — aigralys.com
 
-## v3 (2026-10-23, noche) — estado vigente
+## v4 (2026-10-26) — estado vigente: home de agentes en vivo
+- Posicionamiento: "Agentes de IA que trabajan para tu negocio." Un solo tema oscuro (`#121314`), acento maíz `#F2C230`, tipografía Archivo (@fontsource).
+- Estructura (`src/components/Home.astro`, copy ES/EN en `src/i18n/home.ts`):
+  - Hero: nube de puntos en canvas que una línea de escaneo reconstruye en la forma de cada caso, con el agente que trabaja y un índice de casos.
+  - 5 casos con la misma gramática: columna con ficha (cliente / problema / qué construimos / resultado) + consola de agente (se autoescribe, chips y pedido escrito libre) + escenario con la demo viva.
+    1. Bitewave (`edge-agent`): señal de vibración del aireador del silo, sensor tradicional vs. clasificador en el dispositivo, aviso. Debajo, grilla de 10 aplicaciones agro.
+    2. Bancor Arena (`render-agent`): tribuna 3D en tiempo real (three.js, `public/models/tribuna.glb`, Draco en `public/draco/`), luz, cámara y color de asientos por pedido. three.js se carga recién cerca de la sección (`src/scripts/bancor.js`).
+    3. clearlit (`cost-agent`): curva de costo por usuarios y plataforma, trampas de costo, arreglo para pegar.
+    4. comolocobro (`cobro-agent`): 4 rutas de cobro, USD/pesos, dólar MEP simulado.
+    5. CRM (`ventas-agent`), caso inventado sin nombre de cliente: bandeja, extracción de pedidos (cliente, producto, cantidad, lugar, urgencia), cotización y seguimiento. Precios de catálogo de referencia, no reales.
+  - Pedido escrito: cada demo entiende palabras clave en ES y EN; si no entiende, ofrece "Pedírselo al equipo", que lleva el texto al formulario (campo oculto `demo`).
+- Contacto: FormSubmit AJAX a hello@aigralys.com, campo `origen` desde `utm_source`/`ref`.
+- Lógica de las demos en `src/scripts/home.js`. Movimiento reducido: sin autoplay ni animaciones.
+
+## v3 (2026-10-23, noche)
 - Cada caso tiene una escena animada propia, armada con código (no capturas): `src/components/scenes/`.
   - Barra común de agente (`SceneBar`): nombre del agente, tarea en curso por paso del scroll y reloj.
   - Bancor (`render-agent`): render por tiles en "clay" que se completa con el scroll + panel de Cycles; después día → atardecer → noche.
