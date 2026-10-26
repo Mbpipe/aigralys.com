@@ -114,9 +114,9 @@ const es = {
     ],
   },
   bancor: {
-    kicker: "Bancor Arena / agente de arquitectura y 3D",
-    title: "Una tribuna que se arma con palabras.",
-    lede: "<strong>Esto no es un video.</strong> Es el agente de IA que hicimos para Bancor Arena: le contás una idea y arma la escena 3D lista para render. Pedile algo o girala con el mouse.",
+    kicker: "Bancor Arena / agente de modelado 3D",
+    title: "De una idea a un modelo 3D.",
+    lede: "<strong>Esto no es un video.</strong> Para Bancor Arena creamos un agente de IA que interpreta la idea de la constructora y modela la escena en 3D. Sirve igual para grandes estructuras, objetos chicos o piezas para imprimir en 3D (STL). Pedile un cambio o girala con el mouse.",
     ficha: [
       "Bancor Arena construye gradas y tribunas modulares sobre contenedores marítimos.",
       "Un producto nuevo y ninguna imagen para salir a venderlo. Cada render a medida eran días de un modelador 3D.",
@@ -433,9 +433,9 @@ const en: Home = {
     ],
   },
   bancor: {
-    kicker: "Bancor Arena / architecture and 3D agent",
-    title: "A stand you build with words.",
-    lede: "<strong>This isn't a video.</strong> It's the AI agent we built for Bancor Arena: describe an idea and it builds the 3D scene, ready to render. Ask it something or drag to rotate.",
+    kicker: "Bancor Arena / 3D modeling agent",
+    title: "From an idea to a 3D model.",
+    lede: "<strong>This isn't a video.</strong> For Bancor Arena we built an AI agent that interprets the builder's idea and models the scene in 3D. It works the same for large structures, small objects or parts for 3D printing (STL). Ask for a change or drag to rotate.",
     ficha: [
       "Bancor Arena builds modular stands and grandstands out of shipping containers.",
       "A new product and not a single image to sell it with. Every custom render took a 3D modeler days.",
