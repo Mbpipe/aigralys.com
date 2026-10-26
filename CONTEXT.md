@@ -6,7 +6,7 @@
   - Hero: nube de puntos en canvas que una línea de escaneo reconstruye en la forma de cada caso, con el agente que trabaja y un índice de casos.
   - 5 casos con la misma gramática: columna con ficha (cliente / problema / qué construimos / resultado) + consola de agente (se autoescribe, chips y pedido escrito libre) + escenario con la demo viva.
     1. Bitewave (`edge-agent`): señal de vibración del aireador del silo, sensor tradicional vs. clasificador en el dispositivo, aviso. Debajo, grilla de 10 aplicaciones agro.
-    2. Bancor Arena (`render-agent`): tribuna 3D en tiempo real (three.js, `public/models/tribuna.glb`, Draco en `public/draco/`), luz, cámara y color de asientos por pedido. three.js se carga recién cerca de la sección (`src/scripts/bancor.js`).
+    2. Bancor Arena (`render-agent`, "De una idea a un modelo 3D"): tribuna 3D en tiempo real; el texto aclara que aplica a estructuras grandes, objetos chicos e impresión 3D (STL) (three.js, `public/models/tribuna.glb`, Draco en `public/draco/`), luz, cámara y color de asientos por pedido. three.js se carga recién cerca de la sección (`src/scripts/bancor.js`).
     3. clearlit (`cost-agent`): curva de costo por usuarios y plataforma, trampas de costo, arreglo para pegar.
     4. comolocobro (`cobro-agent`): 4 rutas de cobro, USD/pesos, dólar MEP simulado.
     5. CRM (`ventas-agent`), caso inventado sin nombre de cliente: bandeja, extracción de pedidos (cliente, producto, cantidad, lugar, urgencia), cotización y seguimiento. Precios de catálogo de referencia, no reales.
