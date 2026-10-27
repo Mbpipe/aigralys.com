@@ -606,6 +606,7 @@ function pararDemo() {
 
 $("conectar").addEventListener("click", conectar);
 $("demo").addEventListener("click", () => (S.demo ? pararDemo() : arrancarDemo()));
+if (/[?&]demo\b/.test(location.search)) arrancarDemo();
 $("aprender").addEventListener("click", () => ordenar(1));
 $("rapido").addEventListener("click", () => ordenar(2));
 if (!navigator.bluetooth) avisar(SIN_BT);
