@@ -331,66 +331,149 @@ export function makeAgent(section, actions, opt = {}) {
   layout(); build(); go(0);
 })();
 
-// ---------- Bitewave ----------
+// ---------- Bitewave: el mismo tablero que el monitor del detector ----------
 (() => {
   const B = T.bitewave;
   const section = document.getElementById("bitewave");
+  const $ = (id) => document.getElementById(id);
+  // z de cada rasgo respecto de lo normal aprendido: X Y Z, 8 bandas (3 a 110 Hz), golpes, picos, giro.
   const MODES = {
-    normal: { amp: 0.42, h2: 0.08, imp: 0, mod: 0, noise: 0.06, rms: 2.1, score: 0.12, p: [0.94, 0.03, 0.02, 0.01] },
-    desbalance: { amp: 0.92, h2: 0.1, imp: 0, mod: 0, noise: 0.06, rms: 4.6, score: 0.81, p: [0.08, 0.86, 0.04, 0.02], alert: true },
-    rodamiento: { amp: 0.44, h2: 0.08, imp: 0.95, mod: 0, noise: 0.07, rms: 2.4, score: 0.88, p: [0.05, 0.04, 0.87, 0.04], alert: true },
-    obstruccion: { amp: 0.4, h2: 0.22, imp: 0, mod: 0.65, noise: 0.24, rms: 3.0, score: 0.74, p: [0.1, 0.05, 0.06, 0.79], alert: true },
+    normal: { amp: 0.42, h2: 0.08, imp: 0, mod: 0, noise: 0.06, rms: 2.1, score: 0.12,
+      z: [0.3, -0.2, 0.4, 0.2, -0.3, 0.5, 0.1, -0.4, 0.3, 0.2, -0.1, 0.3, -0.2, 0.1] },
+    desbalance: { amp: 0.92, h2: 0.1, imp: 0, mod: 0, noise: 0.06, rms: 4.6, score: 0.81,
+      z: [3.6, 3.1, 0.8, 0.6, 2.7, 4.8, 3.4, 1.1, 0.4, 0.2, 0.1, -0.5, -0.7, 1.3] },
+    rodamiento: { amp: 0.44, h2: 0.08, imp: 0.95, mod: 0, noise: 0.07, rms: 2.4, score: 0.88,
+      z: [0.5, 0.7, 1.3, 0.2, 0.3, 0.4, 0.6, 0.9, 1.7, 4.9, 5.7, 6.3, 4.5, 0.2] },
+    obstruccion: { amp: 0.4, h2: 0.22, imp: 0, mod: 0.65, noise: 0.24, rms: 3.0, score: 0.74,
+      z: [0.6, 0.4, 2.7, -2.9, -3.3, 0.5, 2.9, 3.7, 1.3, 0.4, 0.2, 0.3, 0.9, -1.5] },
   };
-  const probs = document.getElementById("bw-probs");
-  B.probs.forEach((n) => { const li = document.createElement("li"); li.innerHTML = `<span>${esc(n)}</span><span class="pb"><i></i></span><b></b>`; probs.append(li); });
-  const cur = { ...MODES.normal };
-  let mode = "normal";
-  const seg = document.getElementById("bw-modes");
-  const toast = document.getElementById("bw-toast");
-  const node = document.getElementById("bw-node");
-  const rmsEl = document.getElementById("bw-rms");
-  let rmsShown = 2.1;
-  const pct = (v) => (T.lang === "en" ? Math.round(v * 100) + "%" : Math.round(v * 100) + " %");
+  const C = { ink: css("--ink"), soft: css("--soft"), dim: css("--dim"), line2: "#2E3033", maiz: css("--maiz"), good: css("--good"), bad: css("--bad"), cold: css("--cold") };
+  const colorA = (a) => (a >= 0.7 ? C.bad : a >= 0.5 ? C.maiz : C.good);
+  const colorZ = (z) => (z < -2 ? C.cold : Math.abs(z) < 2 ? C.dim : z < 4 ? C.maiz : C.bad);
+
+  let mode = "normal", alerta = false, alertMode = null, sobre = 0, bajo = 0;
+  const cur = { ...MODES.normal, z: [...MODES.normal.z] };
+  const V = { anom: 0.12, rms: 2.1, z: [...MODES.normal.z] };
+  const hist = Array(150).fill(0.12), tradH = Array(150).fill(2.1);
+  const seg = $("bw-modes"), toast = $("bw-toast"), node = $("bw-node"), inst = $("bw-inst");
 
   function setMode(m) {
-    mode = m;
-    const M = MODES[m];
+    mode = m; sobre = 0;
     seg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
-    document.getElementById("bw-diag").textContent = B.diag[m];
-    const sc = document.getElementById("bw-score");
-    sc.style.width = M.score * 100 + "%";
-    sc.style.background = M.score >= 0.7 ? css("--bad") : css("--good");
-    document.getElementById("bw-scorev").textContent = dec(M.score, 2);
-    const top = M.p.indexOf(Math.max(...M.p));
-    [...probs.children].forEach((li, i) => {
-      li.classList.toggle("lead", i === top);
-      li.querySelector("i").style.width = M.p[i] * 100 + "%";
-      li.querySelector("b").textContent = pct(M.p[i]);
-    });
-    node.classList.toggle("alert", !!M.alert);
-    if (M.alert) {
-      document.getElementById("bw-tmsg").textContent = F(B.toast, { x: B.alert[m] });
-      toast.hidden = false;
-    } else toast.hidden = true;
+    if (reduce) { V.anom = MODES[m].score; V.z = [...MODES[m].z]; setAlerta(m !== "normal"); if (vis) requestAnimationFrame(loop); }
+  }
+  function setAlerta(on) {
+    alerta = on; alertMode = on ? mode : null;
+    inst.classList.toggle("alerta", on);
+    node.classList.toggle("alert", on);
+    $("bw-estado").textContent = on ? B.estado.alerta : B.estado.normal;
+    $("bw-pista").textContent = on ? B.pista[mode] : B.pista.normal;
+    if (on) { $("bw-tmsg").textContent = F(B.toast, { x: B.pista[mode] }); toast.hidden = false; } else toast.hidden = true;
   }
   seg.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { agent.stop(); setMode(b.dataset.m); } });
 
   // Marcador sobre el silo, según cómo recorta la imagen.
-  const field = document.getElementById("bw-field");
+  const field = $("bw-field");
   function placeNode() {
     const w = field.clientWidth, h = field.clientHeight;
     const s = Math.max(w / 1748, h / 560), dw = 1748 * s, dh = 560 * s;
     const x = 0.858 * dw - (dw - w) * 0.5, y = 0.43 * dh - (dh - h) * 0.4;
     node.style.left = x + "px"; node.style.top = y + "px";
-    const tag = document.getElementById("bw-tag");
+    const tag = $("bw-tag");
     tag.style.top = Math.max(8, y - 14) + "px";
     if (x > w * 0.55) { tag.style.left = ""; tag.style.right = w - x + 18 + "px"; } else { tag.style.right = ""; tag.style.left = x + 18 + "px"; }
   }
   new ResizeObserver(placeNode).observe(field);
 
+  // Instrumento de anomalía: marcas en 270 grados, umbral en 0,70.
+  function drawGauge(tt) {
+    const cv = $("bw-gauge"), [g, w, h] = sizeCanvas(cv);
+    g.clearRect(0, 0, w, h);
+    const R = Math.max(40, Math.min(w / 2 - 26, (h - 18) / 1.7071)), cx = w / 2, cy = 12 + R;
+    $("bw-gc").style.top = cy + "px";
+    const a0 = Math.PI * 0.75, span = Math.PI * 1.5, N = 54, val = V.anom;
+    if (alerta && !reduce) {
+      const p = 0.5 + 0.5 * Math.sin(tt * 4);
+      const gr = g.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.05);
+      gr.addColorStop(0, `rgba(229,87,74,${0.14 + 0.12 * p})`); gr.addColorStop(1, "rgba(229,87,74,0)");
+      g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, R * 1.05, 0, Math.PI * 2); g.fill();
+    }
+    g.lineCap = "round";
+    for (let i = 0; i <= N; i++) {
+      const f = i / N, ang = a0 + span * f, on = f <= val + 1e-6, len = i % 9 === 0 ? 0.13 : 0.085;
+      g.strokeStyle = on ? colorA(f) : C.line2; g.lineWidth = on ? 4 : 3;
+      g.beginPath(); g.moveTo(cx + Math.cos(ang) * R, cy + Math.sin(ang) * R); g.lineTo(cx + Math.cos(ang) * R * (1 - len), cy + Math.sin(ang) * R * (1 - len)); g.stroke();
+    }
+    const au = a0 + span * 0.7;
+    g.strokeStyle = C.ink; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(cx + Math.cos(au) * (R + 6), cy + Math.sin(au) * (R + 6)); g.lineTo(cx + Math.cos(au) * R * 0.8, cy + Math.sin(au) * R * 0.8); g.stroke();
+    const av = a0 + span * Math.min(val, 1);
+    g.strokeStyle = colorA(val); g.lineWidth = 2;
+    g.beginPath(); g.arc(cx, cy, R * 0.76, a0, av); g.stroke();
+    g.fillStyle = colorA(val); g.beginPath(); g.arc(cx + Math.cos(av) * R * 0.76, cy + Math.sin(av) * R * 0.76, 4, 0, Math.PI * 2); g.fill();
+    g.fillStyle = C.dim; g.font = "11px Archivo, system-ui, sans-serif"; g.textAlign = "center";
+    [["0", 0], ["1", 1]].forEach(([s, f]) => { const ang = a0 + span * f; g.fillText(s, cx + Math.cos(ang) * (R + 15), cy + Math.sin(ang) * (R + 15) + 4); });
+    $("bw-anom").textContent = dec(val, 2);
+  }
+
+  // Firma radial: cada rayo es un rasgo; el anillo verde es lo normal aprendido.
+  function drawFirma() {
+    const [g, w, h] = sizeCanvas($("bw-firma"));
+    g.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, R = Math.min(w, h) / 2 - 24, r0 = R * 0.24, k = (R - r0) / 8;
+    const n = 14, ang = (i) => -Math.PI / 2 + (i / n) * Math.PI * 2;
+    g.setLineDash([2, 5]); g.strokeStyle = C.line2; g.lineWidth = 1;
+    [4, 6, 8].forEach((z) => { g.beginPath(); g.arc(cx, cy, r0 + k * z, 0, Math.PI * 2); g.stroke(); });
+    g.setLineDash([]);
+    g.fillStyle = "rgba(91,208,138,.10)"; g.strokeStyle = "rgba(91,208,138,.45)";
+    g.beginPath(); g.arc(cx, cy, r0 + k * 2, 0, Math.PI * 2); g.arc(cx, cy, r0, 0, Math.PI * 2, true); g.fill();
+    g.beginPath(); g.arc(cx, cy, r0 + k * 2, 0, Math.PI * 2); g.stroke();
+    [[0, 2, C.soft], [3, 10, C.cold], [11, 13, C.maiz]].forEach(([a, b, col]) => {
+      g.strokeStyle = col; g.globalAlpha = 0.35; g.lineWidth = 2;
+      g.beginPath(); g.arc(cx, cy, R + 1, ang(a) - Math.PI / n + 0.04, ang(b) + Math.PI / n - 0.04); g.stroke();
+      g.globalAlpha = 1;
+    });
+    const pts = V.z.map((z, i) => { const r = r0 + k * Math.min(Math.abs(z), 8); return [cx + Math.cos(ang(i)) * r, cy + Math.sin(ang(i)) * r]; });
+    const maxZ = Math.max(...V.z.map(Math.abs));
+    g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath();
+    g.fillStyle = maxZ >= 4 ? "rgba(229,87,74,.10)" : "rgba(242,194,48,.08)"; g.fill();
+    g.strokeStyle = maxZ >= 4 ? "rgba(229,87,74,.55)" : "rgba(242,194,48,.45)"; g.lineWidth = 1.2; g.stroke();
+    g.lineCap = "round";
+    V.z.forEach((z, i) => {
+      const a = ang(i), r = r0 + k * Math.min(Math.abs(z), 8);
+      g.strokeStyle = colorZ(z); g.lineWidth = Math.max(3, Math.min(6, R / 22));
+      g.beginPath(); g.moveTo(cx + Math.cos(a) * (r0 + 3), cy + Math.sin(a) * (r0 + 3)); g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); g.stroke();
+      g.fillStyle = colorZ(z); g.beginPath(); g.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 3.5, 0, Math.PI * 2); g.fill();
+    });
+    g.fillStyle = "#0E0F10"; g.beginPath(); g.arc(cx, cy, r0 - 2, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = C.line2; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, r0 - 2, 0, Math.PI * 2); g.stroke();
+    g.textAlign = "center"; g.fillStyle = C.dim; g.font = "10px Archivo, system-ui, sans-serif";
+    g.fillText(B.normal, cx, cy + 4);
+    g.font = "11px Archivo, system-ui, sans-serif";
+    B.rasgos.forEach((s, i) => {
+      const a = ang(i), r = R + 13;
+      g.fillStyle = Math.abs(V.z[i]) >= 2 ? colorZ(V.z[i]) : C.dim;
+      g.fillText(s, cx + Math.cos(a) * r, cy + Math.sin(a) * r + 4);
+    });
+  }
+
+  // Línea de los últimos 30 s, con relleno rojo cuando pasa el umbral.
+  function drawLine(id, data, max, thr, colorOf) {
+    const [g, w, h] = sizeCanvas($(id));
+    g.clearRect(0, 0, w, h);
+    const y = (v) => h - 2 - (Math.min(v, max) / max) * (h - 4), x = (i) => (i / (data.length - 1)) * w;
+    g.setLineDash([3, 4]); g.strokeStyle = C.line2; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(0, Math.round(y(thr)) + 0.5); g.lineTo(w, Math.round(y(thr)) + 0.5); g.stroke(); g.setLineDash([]);
+    g.save(); g.beginPath(); g.rect(0, 0, w, y(thr)); g.clip();
+    g.beginPath(); g.moveTo(0, y(thr)); data.forEach((v, i) => g.lineTo(x(i), y(v))); g.lineTo(w, y(thr)); g.closePath();
+    g.fillStyle = "rgba(229,87,74,.22)"; g.fill(); g.restore();
+    g.beginPath(); data.forEach((v, i) => (i ? g.lineTo(x(i), y(v)) : g.moveTo(x(i), y(v))));
+    g.strokeStyle = colorOf(data[data.length - 1]); g.lineWidth = 1.5; g.stroke();
+  }
+
   // Señal: rotor a ~1x, armónico, impactos de rodamiento, modulación por obstrucción.
-  const canvas = document.getElementById("bw-canvas");
-  let t = 0, vis = false, running = false, last = performance.now();
+  const canvas = $("bw-canvas");
+  let t = 0, vis = false, running = false, last = performance.now(), acc = 0;
   onScreen(section, (v) => { vis = v; if (v && !running) { running = true; last = performance.now(); requestAnimationFrame(loop); } });
   const rnd = () => Math.random() * 2 - 1;
   function sample(tt) {
@@ -399,34 +482,51 @@ export function makeAgent(section, actions, opt = {}) {
     if (cur.mod > 0.01) y *= 1 + cur.mod * Math.sin(tt * 2 * Math.PI * 0.7);
     return y + cur.noise * rnd();
   }
-  function loop(now) {
-    if (!vis) { running = false; return; }
-    const dt = Math.min((now - last) / 1000, 0.05); last = now; t += reduce ? 0 : dt;
-    const M = MODES[mode], k = reduce ? 1 : Math.min(1, dt * 3);
-    for (const key of ["amp", "h2", "imp", "mod", "noise"]) cur[key] += (M[key] - cur[key]) * k;
-    rmsShown += (M.rms - rmsShown) * k + (reduce ? 0 : (Math.random() - 0.5) * 0.02);
-    rmsEl.textContent = dec(rmsShown, 1) + " mm/s";
+  function drawSignal() {
     const [g, w, h] = sizeCanvas(canvas);
     g.clearRect(0, 0, w, h);
     g.strokeStyle = css("--line"); g.lineWidth = 1;
     for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, (h * i) / 4 + 0.5); g.lineTo(w, (h * i) / 4 + 0.5); g.stroke(); }
-    g.fillStyle = "rgba(91,208,138,.07)";
-    g.fillRect(0, h / 2 - h * 0.25, w, h * 0.5);
-    g.fillStyle = css("--dim"); g.font = "11px Archivo, system-ui, sans-serif";
+    g.fillStyle = "rgba(91,208,138,.07)"; g.fillRect(0, h / 2 - h * 0.25, w, h * 0.5);
+    g.fillStyle = C.dim; g.font = "11px Archivo, system-ui, sans-serif"; g.textAlign = "left";
     g.fillText(B.band, 8, h / 2 - h * 0.25 + 14);
     g.beginPath();
     const span = 1.2;
-    for (let px = 0; px <= w; px += 1.5) {
-      const y = h / 2 - sample(t - span + (px / w) * span) * h * 0.42;
-      px === 0 ? g.moveTo(px, y) : g.lineTo(px, y);
-    }
-    g.strokeStyle = MODES[mode].alert ? css("--maiz") : css("--ink");
-    g.lineWidth = 1.4; g.stroke();
-    requestAnimationFrame(loop);
+    for (let px = 0; px <= w; px += 1.5) { const yy = h / 2 - sample(t - span + (px / w) * span) * h * 0.42; px === 0 ? g.moveTo(px, yy) : g.lineTo(px, yy); }
+    g.strokeStyle = alerta ? C.maiz : C.ink; g.lineWidth = 1.4; g.stroke();
   }
+  function loop(now) {
+    if (!vis) { running = false; return; }
+    const dt = Math.min((now - last) / 1000, 0.05); last = now; t += reduce ? 0 : dt;
+    const M = MODES[mode], k = reduce ? 1 : Math.min(1, dt * 3), kz = reduce ? 1 : Math.min(1, dt * 1.6);
+    for (const key of ["amp", "h2", "imp", "mod", "noise"]) cur[key] += (M[key] - cur[key]) * k;
+    if (!reduce) {
+      V.anom += (M.score - V.anom) * kz + (Math.random() - 0.5) * 0.006;
+      V.z = V.z.map((z, i) => z + (M.z[i] - z) * kz + (Math.random() - 0.5) * 0.08);
+    }
+    V.rms += (M.rms - V.rms) * k + (reduce ? 0 : (Math.random() - 0.5) * 0.02);
+    $("bw-rms").textContent = dec(V.rms, 1) + " mm/s";
+    // Mismas reglas que el firmware, en chico: sobre el umbral un rato -> alerta; bajo 0,8 del umbral -> vuelve.
+    acc += dt;
+    if (acc >= 0.2 || reduce) {
+      acc = 0;
+      hist.push(V.anom); hist.shift(); tradH.push(V.rms); tradH.shift();
+      if (!reduce) {
+        sobre = V.anom > 0.7 ? sobre + 1 : 0;
+        bajo = V.anom < 0.56 ? bajo + 1 : 0;
+        if (sobre >= 3 && (!alerta || (alertMode !== mode && mode !== "normal"))) setAlerta(true);
+        else if (alerta && bajo >= 5) setAlerta(false);
+      }
+    }
+    drawSignal(); drawGauge(t); drawFirma();
+    drawLine("bw-hist", hist, 1, 0.7, colorA);
+    drawLine("bw-tc", tradH, 8, 7.1, () => C.soft);
+    if (!reduce) requestAnimationFrame(loop); else running = false;
+  }
+  if (reduce) new ResizeObserver(() => { if (vis) requestAnimationFrame(loop); }).observe(section.querySelector(".bw-board"));
   setMode("normal");
 
-  const trad = document.getElementById("bw-trad");
+  const trad = $("bw-trad");
   const runs = [() => setMode("normal"), () => setMode("rodamiento"), () => flash(trad), () => setMode("desbalance"), () => setMode("obstruccion")];
   const agent = makeAgent(section, B.actions.map((a, i) => ({ ...a, run: runs[i] })), {
     gap: 3800, name: "Bitewave", scope: B.con.scope, placeholder: B.con.placeholder,
@@ -436,7 +536,7 @@ export function makeAgent(section, actions, opt = {}) {
         : /obstru|tapa|polvo|basura|tierra|entrada de aire|block|clog|dust|dirt|intake/.test(t) ? "obstruccion"
         : /normal|\bbien\b|sano|arregl|repar|\bfine\b|\bok\b|\bfix|healthy/.test(t) ? "normal" : null;
       const tradQ = /tradicional|comun|mm\/s|umbral|traditional|regular|common|threshold/.test(t);
-      const infoQ = /bateria|lora|conexion|internet|nube|senal|como funciona|como sabe|aprend|battery|connection|cloud|signal|how does|how it works|learn/.test(t);
+      const infoQ = /bateria|lora|bluetooth|celu|telefono|conexion|internet|nube|senal|como funciona|como sabe|aprend|battery|phone|connection|cloud|signal|how does|how it works|learn/.test(t);
       if (!m && !tradQ && !infoQ) return null;
       return {
         run: () => { if (m) setMode(m); if (tradQ) flash(trad); },

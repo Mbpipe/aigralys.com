@@ -78,32 +78,45 @@ const sig = (kind: string) => {
   </aside>
   <div class="stage ui-stage">
     <div class="vtag"><b>Bitewave</b> / {bw.vtag}</div>
-    <div class="ui">
+    <div class="ui bw-ui">
       <div class="card bw-field" id="bw-field">
         <img src="/work/bitewave-campo.webp" alt={bw.imgAlt} width="1748" height="560" loading="lazy" decoding="async" />
         <span class="bw-node" id="bw-node"></span>
         <span class="bw-tag" id="bw-tag" set:html={bw.node} />
-        <span class="bw-meta">{bw.nodeMeta}</span>
+        <span class="bw-meta"><i></i>{bw.nodeMeta}</span>
       </div>
-      <div class="bw-grid">
+      <div class="bw-board">
+        <div class="card bw-inst" id="bw-inst">
+          <div class="bw-h"><span class="lbl">{bw.gaugeLbl}</span><span>{bw.aiLbl}</span></div>
+          <div class="bw-gauge"><canvas id="bw-gauge"></canvas><div class="bw-gc" id="bw-gc"><b id="bw-anom">0,12</b><span class="lbl">{bw.gaugeSub}</span></div></div>
+          <div class="bw-estado"><b id="bw-estado">{bw.estado.normal}</b><p id="bw-pista">{bw.pista.normal}</p></div>
+          <div class="bw-h bw-hh"><span class="lbl">{bw.hist}</span></div>
+          <canvas class="bw-hist" id="bw-hist"></canvas>
+        </div>
+        <div class="card bw-firma">
+          <div class="bw-h"><span class="lbl">{bw.firmaLbl}</span><span>{bw.firmaSub}</span></div>
+          <div class="bw-fc"><canvas id="bw-firma"></canvas></div>
+          <div class="bw-ley">
+            <span><i class="k-n"></i>{bw.ley[0]}</span><span><i class="k-u"></i>{bw.ley[1]}</span><span><i class="k-b"></i>{bw.ley[2]}</span><span><i class="k-c"></i>{bw.ley[3]}</span>
+          </div>
+        </div>
         <div class="card bw-sig">
-          <div class="row"><span class="lbl">{bw.sigLbl}</span><span class="dim" style="font-size:12px">{bw.sigSub}</span></div>
-          <canvas id="bw-canvas"></canvas>
-          <div class="seg" id="bw-modes" style="justify-self:start;flex-wrap:wrap">
+          <div class="bw-h"><span class="lbl">{bw.sigLbl}</span><span>{bw.sigSub}</span></div>
+          <div class="bw-sc"><canvas id="bw-canvas"></canvas></div>
+          <div class="seg" id="bw-modes">
             {Object.entries(bw.modes).map(([k, v], i) => <button type="button" data-m={k} class={i === 0 ? "on" : undefined}>{v}</button>)}
           </div>
         </div>
-        <div class="bw-side">
-          <div class="card bw-trad" id="bw-trad"><span class="lbl">{bw.tradLbl}</span><b id="bw-rms">2,1 mm/s</b><span class="okt">{bw.tradOk}</span></div>
-          <div class="card bw-ai" id="bw-ai">
-            <span class="lbl">{bw.aiLbl}</span>
-            <b id="bw-diag">{bw.diag.normal}</b>
-            <div class="meter"><span class="dim">{bw.anomaly}</span><div class="bar"><i id="bw-score" style="width:12%"></i><em></em></div><b id="bw-scorev">0,12</b></div>
-            <ul class="probs" id="bw-probs"></ul>
-          </div>
+        <div class="card bw-trad" id="bw-trad">
+          <div class="bw-h"><span class="lbl">{bw.tradLbl}</span></div>
+          <b id="bw-rms">2,1 mm/s</b>
+          <span class="okt">{bw.tradOk}</span>
+          <div class="bw-tc"><canvas id="bw-tc"></canvas></div>
+          <span class="bw-tl">{bw.tradHist}</span>
         </div>
       </div>
       <div class="toast" id="bw-toast" hidden><span class="tdot"></span><div><span id="bw-tmsg"></span><small>{bw.toastSub}</small></div></div>
+      <a class="bw-demo" href="/lab/bitewave/?demo">{bw.demoLink} <span aria-hidden="true">→</span></a>
     </div>
   </div>
 </section>
